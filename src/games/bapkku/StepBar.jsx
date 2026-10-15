@@ -15,7 +15,7 @@
  */
 function StepBar({ steps, current, reachable, onSelect }) {
   return (
-    <nav className="stepbar" aria-label="만들기 단계">
+    <nav className="stepbar" aria-label="Steps">
       <ol className="stepbar__list">
         {steps.map((step, i) => {
           const state = i === current ? 'is-current' : i < current ? 'is-done' : i <= reachable ? 'is-open' : 'is-locked'
@@ -28,7 +28,7 @@ function StepBar({ steps, current, reachable, onSelect }) {
                 onClick={() => canGo && onSelect(i)}
                 disabled={!canGo && i !== current}
                 aria-current={i === current ? 'step' : undefined}
-                aria-label={`${i + 1}단계 ${step.label}${i < current ? ' (완료)' : ''}`}
+                aria-label={`Step ${i + 1}: ${step.label}${i < current ? ' (done)' : ''}`}
               >
                 <span className="stepbar__dot">{i < current ? '✓' : i + 1}</span>
                 <span className="stepbar__label">{step.label}</span>

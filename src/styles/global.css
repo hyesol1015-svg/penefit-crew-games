@@ -33,9 +33,9 @@
   --shadow-card: 0 6px 18px rgba(196, 140, 90, 0.2);
 
   /* ── 글꼴 ── */
-  --font-title: 'Fredoka', 'Jua', system-ui, sans-serif;
-  --font-head: 'Jua', 'Gowun Dodum', system-ui, sans-serif;
-  --font-body: 'Gowun Dodum', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  --font-title: 'Fredoka', system-ui, sans-serif;
+  --font-head: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --radius-lg: 26px;
   --radius-md: 18px;

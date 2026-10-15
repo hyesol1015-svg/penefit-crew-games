@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { ASSETS, assetUrl } from '../../gameAssets.js'
+import { assetUrl } from '../../gameAssets.js'
 
 /**
  * PowderJar — 파우더 토퍼 통 그림 (임시 디자인)
@@ -7,23 +7,50 @@ import { ASSETS, assetUrl } from '../../gameAssets.js'
  * 귀여운 펫 토퍼 패키지 '느낌'만 낸 임시 그림입니다.
  * 실제 브랜드 로고나 실제 제품 패키지를 따라 그리지 않았어요.
  *   - 크림색 뚜껑 + 가루가 나오는 구멍
- *   - 파우더 색 라벨에 재료 이름
+ *   - 파우더 색 라벨에 제품명 + 영문 컬러명
  *   - 아래쪽 투명 창으로 보이는 가루
  *
- * gameAssets.js 의 toppers[id] 에 실제 제품 PNG를 넣으면
- * 이 그림 대신 원본 이미지를 그대로(비율 유지) 보여 줍니다.
+ * bapkkuData.js 의 TOPPERS 항목에 image 경로를 넣으면
+ * 이 그림 대신 실제 제품 PNG를 그대로(비율 유지) 보여 줍니다.
  *
  * props
  *   topper : TOPPERS 중 하나
  *   small  : 선택 버튼 안에 들어가는 작은 크기 (글자 생략)
  */
+// 라벨 색이 밝으면 진한 글씨, 어두우면 흰 글씨
+function textColorOn(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+  return 0.299 * r + 0.587 * g + 0.114 * b > 175 ? '#5A4232' : '#FFFFFF'
+}
+
+// 긴 제품명은 두 줄로 나눠요 (예: Purple Sweet / Potato)
+function splitName(name) {
+  const words = name.split(' ')
+  if (words.length < 2) return [name]
+  if (words.length === 2) return words
+  return [words.slice(0, -1).join(' '), words[words.length - 1]]
+}
+
 function PowderJar({ topper, small = false }) {
   const uid = `j${useId().replace(/[^a-zA-Z0-9]/g, '')}`
-  const productImage = assetUrl(ASSETS.toppers?.[topper.id])
+  const productImage = assetUrl(topper.image)
 
   if (productImage) {
-    return <img className="powder-jar__img" src={productImage} alt="" draggable="false" />
+    return (
+      <img
+        className="powder-jar__img"
+        src={productImage}
+        alt={`${topper.name} (${topper.colorName}) powder`}
+        draggable="false"
+      />
+    )
   }
+
+  const ink = textColorOn(topper.label)
+  const lines = splitName(topper.name)
+  const longest = Math.max(...lines.map((l) => l.length))
+  const nameSize = longest > 9 ? 7.6 : longest > 7 ? 8.8 : 10
 
   const [c0, c1, c2] = topper.colors
   return (
@@ -61,28 +88,45 @@ function PowderJar({ topper, small = false }) {
       <rect x="12" y="26" width="56" height="78" rx="14" fill={`url(#${uid}-body)`} />
 
       {/* 아래쪽 투명 창으로 보이는 가루 */}
-      <rect x="18" y="74" width="44" height="24" rx="9" fill={`url(#${uid}-grain)`} />
-      <rect x="18" y="74" width="44" height="24" rx="9" fill="none" stroke="#FFFFFF" strokeOpacity="0.8" strokeWidth="1.5" />
-      <path d="M22,78 Q22,76 25,76 L30,76" stroke="#FFFFFF" strokeOpacity="0.7" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <rect x="18" y="78" width="44" height="21" rx="8" fill={`url(#${uid}-grain)`} />
+      <rect x="18" y="78" width="44" height="21" rx="8" fill="none" stroke="#FFFFFF" strokeOpacity="0.8" strokeWidth="1.5" />
+      <path d="M22,82 Q22,80 25,80 L30,80" stroke="#FFFFFF" strokeOpacity="0.7" strokeWidth="2" strokeLinecap="round" fill="none" />
 
-      {/* 라벨 */}
-      <rect x="12" y="40" width="56" height={small ? 26 : 30} rx="6" fill={`url(#${uid}-label)`} />
-      <circle cx="22" cy={small ? 53 : 50} r="3" fill="#FFFFFF" opacity="0.9" />
-      <circle cx="58" cy={small ? 53 : 50} r="3" fill="#FFFFFF" opacity="0.9" />
-      {!small && (
+      {/* 라벨: 제품명 + 영문 컬러명 */}
+      <rect x="12" y="38" width="56" height={small ? 28 : 36} rx="6" fill={`url(#${uid}-label)`} />
+      {small ? (
         <>
+          <circle cx="22" cy="52" r="3" fill="#FFFFFF" opacity="0.9" />
+          <circle cx="58" cy="52" r="3" fill="#FFFFFF" opacity="0.9" />
+        </>
+      ) : (
+        <>
+          {lines.map((line, i) => (
+            <text
+              key={line}
+              x="40"
+              y={(lines.length === 1 ? 54 : 49) + i * 9.5}
+              textAnchor="middle"
+              fontFamily="Fredoka, 'Nunito', sans-serif"
+              fontWeight="600"
+              fontSize={nameSize}
+              fill={ink}
+            >
+              {line}
+            </text>
+          ))}
           <text
             x="40"
-            y="56"
+            y="70"
             textAnchor="middle"
-            fontFamily="Jua, 'Gowun Dodum', sans-serif"
-            fontSize={topper.name.length > 3 ? 10 : 12}
-            fill="#FFFFFF"
+            fontFamily="Fredoka, 'Nunito', sans-serif"
+            fontSize="5.6"
+            fontWeight="600"
+            fill={ink}
+            opacity="0.85"
+            letterSpacing="0.8"
           >
-            {topper.name}
-          </text>
-          <text x="40" y="66" textAnchor="middle" fontFamily="Fredoka, sans-serif" fontSize="5.5" fontWeight="600" fill="#FFFFFF" opacity="0.85" letterSpacing="0.8">
-            TOPPER POWDER
+            {topper.colorName}
           </text>
         </>
       )}

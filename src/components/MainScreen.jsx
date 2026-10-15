@@ -40,7 +40,7 @@ function MainScreen({ onPlay, crewId, onSelectCrew }) {
           <span className="sparkle sparkle--1">✦</span>
           <span className="sparkle sparkle--2">✧</span>
           <span className="sparkle sparkle--3">✦</span>
-          <div className="crew-picker__row" role="radiogroup" aria-label="함께 요리할 크루 고르기">
+          <div className="crew-picker__row" role="radiogroup" aria-label="Pick your kitchen buddy">
             {CREW.map((crew, i) => {
               const active = crew.id === selected.id
               return (
@@ -62,7 +62,7 @@ function MainScreen({ onPlay, crewId, onSelectCrew }) {
             })}
           </div>
           <p className="crew-picker__caption" aria-live="polite">
-            오늘의 셰프는 <b>{selected.name}</b>! 함께 요리할 크루를 골라 주세요
+            Today's chef is <b>{selected.name}</b>! Pick your kitchen buddy.
           </p>
         </div>
 
@@ -79,8 +79,8 @@ function MainScreen({ onPlay, crewId, onSelectCrew }) {
       </section>
 
       {/* ── 게임 카드 4개 (모두 플레이 가능) ── */}
-      <section className="game-board" aria-label="게임 목록">
-        <p className="game-board__lead">오늘은 어떤 요리를 만들어 볼까요?</p>
+      <section className="game-board" aria-label="Games">
+        <p className="game-board__lead">What shall we cook today?</p>
         <div className="game-grid">
           {GAMES.map((game, index) => {
             const thumb = assetUrl(ASSETS.gameThumbs[game.id])
@@ -91,7 +91,7 @@ function MainScreen({ onPlay, crewId, onSelectCrew }) {
                 className={`game-card game-card--${game.theme}`}
                 style={{ animationDelay: `${index * 70}ms` }}
                 onClick={() => onPlay(game.id)}
-                aria-label={`${game.title} 플레이하기 (${game.audience})`}
+                aria-label={`Play ${game.title} (${game.audience})`}
               >
                 <span className="game-card__top">
                   <span className="game-card__thumb" aria-hidden="true">

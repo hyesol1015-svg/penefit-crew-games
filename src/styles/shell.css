@@ -671,3 +671,10 @@
     padding: 3px 7px;
   }
 }
+
+/* 영어 게임 이름(예: Bowl Decorating Studio)이 휴대폰에서 잘리지 않게 */
+@media (max-width: 420px) {
+  .shell__title {
+    font-size: 1.12rem;
+  }
+}

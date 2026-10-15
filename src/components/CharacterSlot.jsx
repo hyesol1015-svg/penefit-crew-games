@@ -34,7 +34,7 @@ function CharacterSlot({ characterId = 'main', size = 'md', showLabel = false })
           <span className="character-slot__emoji" role="img" aria-label={character.name}>
             {character.emoji}
           </span>
-          {showLabel && <span className="character-slot__label">캐릭터 자리</span>}
+          {showLabel && <span className="character-slot__label">Character</span>}
         </>
       )}
     </div>

@@ -10,28 +10,28 @@ import BuildingStage, { StepList } from '../../components/BuildingStage.jsx'
  * 무대(children)와 패널(left/right), 버튼(actions)만 채우면 됩니다.
  */
 const PLANNED_STEPS = [
-  '컵 디자인 고르기',
-  '펫용 베이스 재료 고르기',
-  '컵에 재료 붓기',
-  '거품·펫용 토핑 올리기',
-  '발바닥·하트 장식 만들기',
-  '완성된 멍푸치노 서빙하기',
+  'Pick a cup design',
+  'Pick a pet-friendly base',
+  'Pour it into the cup',
+  'Add foam or pet toppings',
+  'Make a paw or heart topping',
+  'Serve your puppuccino!',
 ]
 
 function MungpuccinoCafe({ onHome }) {
   return (
     <GameShell
-      title="멍푸치노 카페"
-      eyebrow="PENEFIT CREW CAFE"
+      title="Puppuccino Café"
+      eyebrow="PENEFIT CREW CAFÉ"
       characterId="cafe"
       onHome={onHome}
       right={<StepList steps={PLANNED_STEPS} />}
-      rightTitle="만들기 순서"
+      rightTitle="How to Make"
     >
       <BuildingStage
         emoji="☕"
-        title="폭신한 거품 위에 발바닥 장식을 올린 펫 음료"
-        note="플레이 기능은 다음 작업 단계에서 만들어요. 지금은 화면 배치만 확인할 수 있어요."
+        title="A fluffy pet drink with paw-print foam"
+        note="Play mode is coming in the next update. For now you can preview the layout."
       />
     </GameShell>
   )

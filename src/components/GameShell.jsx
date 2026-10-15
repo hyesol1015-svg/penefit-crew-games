@@ -69,7 +69,7 @@ function GameShell({
 
       {/* ── HUD (상단 바) ── */}
       <header className="shell__hud">
-        <button type="button" className="round-btn" onClick={onHome} aria-label="홈으로">
+        <button type="button" className="round-btn" onClick={onHome} aria-label="Home">
           <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 11.2 12 4l8 7.2V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z" />
           </svg>
@@ -79,7 +79,7 @@ function GameShell({
           <h1 className="shell__title">{title}</h1>
         </div>
         {onRestart && (
-          <button type="button" className="round-btn" onClick={onRestart} aria-label="처음부터 다시하기">
+          <button type="button" className="round-btn" onClick={onRestart} aria-label="Start over">
             <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12a7 7 0 1 0 2.05-4.95" fill="none" strokeWidth="2.6" strokeLinecap="round" />
               <path d="M4 4v4.6h4.6" fill="none" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />

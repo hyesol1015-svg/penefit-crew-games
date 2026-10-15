@@ -1347,3 +1347,63 @@
     border-radius: 20px;
   }
 }
+
+/* ==========================================================
+ * 파우더 선택 카드: 제품명(영어, 길면 줄바꿈) + 영문 컬러명
+ * ========================================================== */
+.chip--topper .chip__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.1;
+}
+
+.chip--topper .chip__name {
+  white-space: normal;
+  overflow: visible;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.chip__sub {
+  margin-top: 2px;
+  font-family: var(--font-title);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.chip--topper.is-active .chip__sub {
+  color: var(--powder);
+  filter: brightness(0.75);
+}
+
+@media (min-width: 1280px) {
+  .chip--topper .chip__text {
+    align-items: flex-start;
+  }
+  .chip--topper .chip__name {
+    text-align: left;
+    font-size: 0.95rem;
+  }
+  .chip__sub {
+    font-size: 0.66rem;
+  }
+}
+
+/* 그릇 이름(예: Butter Yellow)도 좁은 칸에서는 줄바꿈 */
+.bapkku .chip__name {
+  white-space: normal;
+  overflow: visible;
+  text-align: center;
+  line-height: 1.1;
+}
+
+@media (min-width: 1280px) {
+  .bapkku .chip__name {
+    text-align: left;
+  }
+}

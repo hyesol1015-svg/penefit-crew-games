@@ -8,6 +8,23 @@ React + Vite + 순수 CSS/SVG로 만들었고, 유료 API·AI API·외부 데이
 
 ---
 
+## 0. 화면 언어와 이름
+
+게임 화면은 **모두 영어**예요. (주석과 README 같은 개발 문서만 한국어)
+- 화면 문구는 각 화면 파일에 직접 들어 있어요. 문구를 바꾸려면 아래 파일에서 영어 문장을 찾아 고치면 돼요.
+  - 메인: `components/MainScreen.jsx`, 게임 카드: `games/gameList.js`
+  - 밥꾸(Bowl Decorating Studio): `games/bapkku/BapkkuStudio.jsx`, 단계·그릇·파우더 이름: `games/bapkku/bapkkuData.js`
+  - 쿠키·멍푸치노·젤리: `games/cookie|cafe|jelly/*.jsx`, 캐릭터 이름: `characters.js`
+
+| 코드 폴더/파일 | 화면에 보이는 이름 |
+| --- | --- |
+| 전체 | PENEFIT CREW's Little Kitchen |
+| `bapkku` (밥꾸 스튜디오) | Bowl Decorating Studio |
+| `cookie` | Cookie Bakery |
+| `cafe` (멍푸치노 카페) | Puppuccino Café |
+| `jelly` (말랑젤리 연구소, 펫 젤리 간식) | Gummy Lab |
+| 크루: 페네 / 셉셉이 / 피티 / 돌돌이 | Pene / Sepsep / Piti / Doldol |
+
 ## 1. 실행 방법 (처음 하는 분용)
 
 > Node.js 18 이상이 필요합니다. VS Code 터미널에서 `node -v`로 확인할 수 있어요.
@@ -100,10 +117,10 @@ src/
 
 | 파일 | 캐릭터 | 쓰이는 곳 |
 | --- | --- | --- |
-| `dog_brown.png` | 페네 | 메인 화면 크루 고르기, 밥꾸 안내 말풍선, 밥꾸 완성 화면 |
-| `dog_cream.png` | 셉셉이 | 〃 |
-| `cat_orange.png` | 피티 | 〃 |
-| `cat_black.png` | 돌돌이 | 〃 |
+| `dog_brown.png` | 페네 (Pene) | 메인 화면 크루 고르기, 밥꾸 안내 말풍선, 밥꾸 완성 화면 |
+| `dog_cream.png` | 셉셉이 (Sepsep) | 〃 |
+| `cat_orange.png` | 피티 (Piti) | 〃 |
+| `cat_black.png` | 돌돌이 (Doldol) | 〃 |
 
 - 각 PNG에는 **앞모습 · 옆모습 · 뒷모습 · 반대쪽 옆모습**이 가로로 나란히 있어요.
 - 원본 파일은 그대로 두고, 화면에서는 **앞모습 영역만 잘라서** 보여 줘요. (`components/CrewSprite.jsx`)
@@ -119,8 +136,8 @@ src/
    ```js
    {
      id: 'pene',                                  // 영어 이름 (겹치면 안 돼요)
-     name: '페네',                                // 화면에 보이는 이름
-     species: '강아지',
+     name: 'Pene',                                // 화면에 보이는 이름 (영어)
+     species: 'puppy',
      image: '/assets/characters/dog_brown.png',   // 파일 경로
      sheet: [1920, 644],                          // 원본 이미지 전체 크기
      front: [7, 33, 509, 605],                    // 앞모습 영역 [x, y, 가로, 세로]
@@ -145,10 +162,15 @@ src/
 | `kitchenBackground` | 메인·게임 화면의 주방 배경 (벽지·창문·조리대) | 세로형 1080×1920 이상 |
 | `logo` | 메인 화면 'PENEFIT CREW' 글자 | 투명 PNG |
 | `gameThumbs.bapkku` 등 | 게임 카드의 이모지 아이콘 | 정사각형 투명 PNG |
-| `toppers.pumpkin` 등 6종 | 토퍼 선택 버튼 + 끌어서 뿌리는 파우더 통 (지금은 SVG 임시 통) | 세로형 누끼 PNG(약 8:11), 뚜껑이 위쪽 |
 | `tools.scoop` | 사료 담기 단계의 스쿱 (지금은 SVG로 그린 임시 스쿱) | 가로형 투명 PNG, 왼쪽 컵·오른쪽 손잡이 |
 
 제품 사진은 코드에서 모양을 바꾸지 않고 원본 그대로(비율 유지) 보여 줍니다.
+
+### 파우더 제품 이미지 (PENEFIT Palette Powder)
+파우더 6종의 제품 PNG는 `src/games/bapkku/bapkkuData.js`의 `TOPPER_DATA` 각 항목 `image`에 경로를 넣어요.
+(예: `image: '/assets/toppers/beetroot.png'` → 파일은 `public/assets/toppers/beetroot.png`)
+넣으면 선택 카드와 끌어서 쓰는 파우더 통이 모두 실제 제품 이미지로 바뀌어요. 권장: 세로형 누끼 PNG(약 8:11), 뚜껑이 위쪽.
+지금은 임시 파우더 통 그림(로고 없음, 제품명·영문 컬러명 라벨)이 표시돼요.
 
 사료 그릇은 터치 위치에 파우더를 뿌려야 해서 SVG로 그렸습니다. 그릇 색은 `bapkkuData.js`의 `BOWLS`에서 바꿀 수 있습니다.
 
@@ -166,15 +188,26 @@ src/
    - 스쿱을 톡 누르기
    - 그릇을 톡 누르기
    - 패널의 **한 스쿱 담기** 버튼 (키보드: 스쿱에 초점을 두고 Enter)
-3. **파우더 뿌리기** — 단호박·비트루트·브로콜리·당근·고구마·연어 6종 (게임용 임시 구성, `bapkkuData.js`의 `TOPPERS`에서 수정)
+3. **파우더 뿌리기** — 실제 PENEFIT Palette Powder 6종 (`bapkkuData.js`의 `TOPPER_DATA`에서 관리)
+
+   | 제품명 (화면 표시) | 컬러 | 게임용 참고 색상 |
+   | --- | --- | --- |
+   | Beetroot | RED | `#CE829A` |
+   | Broccoli | GREEN | `#A8C97D` |
+   | Sweet Pumpkin | YELLOW | `#F0D16E` |
+   | Psyllium Husk | BEIGE | `#DCC693` |
+   | Chlorella | DEEP GREEN | `#689F63` |
+   | Purple Sweet Potato | PURPLE | `#B997BD` |
+
+   - 색은 `color` 한 곳만 고치면 떨어지는 가루 색(밝은색·어두운색)과 통 라벨 색이 자동으로 따라 바뀌어요.
    - 오른쪽 위의 **파우더 통을 끌어서** 그릇 위로 가져오면 통이 기울며 가루가 떨어져요.
    - 그릇 위에서 **좌우로 흔들수록** 많이 나오고, 가만히 누르고 있으면 솔솔 조금씩 나와요.
    - 통의 **위아래 위치**로 사료의 뒤쪽/앞쪽 중 어디에 떨어질지 정해져요.
    - 그릇 밖에서는 가루가 나오지 않아요. 가루는 사료 위에만 쌓여요.
    - 보조 조작: 그릇을 **톡 누르거나 문질러도** 그 자리에 뿌려져요.
    - 키보드: 통에 초점을 두고 방향키로 옮기고 Enter로 뿌리기
-   - **↶ 되돌리기**는 마지막 한 번의 동작(한 번 끌기 또는 연속 톡톡)을 취소, **↺ 전체 지우기**는 모두 지워요.
-   - 80알 이상 뿌리면 다음 단계로 갈 수 있어요. (`POWDER_MIN`)
+   - **↶ Undo**(되돌리기)는 마지막 한 번의 동작(한 번 끌기 또는 연속 톡톡, 파우더를 바꾸면 새 동작)을 취소, **↺ Clear All**(전체 지우기)은 모두 지워요.
+   - 80알 이상 뿌리면 Next 버튼이 켜져요. (`POWDER_MIN`)
 4. **토핑 꾸미기** — 다음 작업에서 구현 예정이에요. 지금은 바로 **완성!**을 누를 수 있어요.
 5. **완성** — 별점 결과 화면. **다시 만들기**는 ① 그릇 단계부터 새로 시작해요.
 

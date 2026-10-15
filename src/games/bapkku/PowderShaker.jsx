@@ -183,7 +183,7 @@ function PowderShaker({ topper, onPour, onStrokeStart, onStrokeEnd, ref }) {
         style={{ transform: `translate(${pos.x}px, ${pos.y}px) rotate(${tilt}deg)` }}
         role="button"
         tabIndex={0}
-        aria-label={`${topper.name} 파우더 통. 끌어서 그릇 위에서 흔들면 가루가 뿌려져요. 방향키로 옮기고 Enter로 뿌릴 수 있어요`}
+        aria-label={`${topper.name} powder shaker. Drag it over the bowl and shake to sprinkle. Use the arrow keys to move it and Enter to sprinkle.`}
         onKeyDown={handleKeyDown}
       >
         <div key={shakeKey} className={`shaker__art ${shakeKey ? 'is-shake' : ''}`}>

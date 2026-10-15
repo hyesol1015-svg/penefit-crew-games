@@ -19,29 +19,29 @@ import BuildingStage, { StepList } from '../../components/BuildingStage.jsx'
  *     검증된 레시피처럼 표현하지 않습니다.
  */
 const PLANNED_STEPS = [
-  '무가당 젤리 베이스 재료 고르기',
-  '두 가지 색 베이스 섞기',
-  '젤리틀 고르기 (곰·하트·별·강아지·고양이)',
-  '젤리틀에 붓기',
-  '굳히기 미니게임',
-  '젤리 꺼내기 (클릭·드래그)',
-  '말랑말랑 흔들리는 펫 젤리 완성',
+  'Pick a sugar-free gummy base',
+  'Mix two colors together',
+  'Pick a mold (bear, heart, star, puppy, kitty)',
+  'Pour it into the mold',
+  'Let it set! Mini game',
+  'Pop out the gummy (tap or drag)',
+  'Your wobbly pet gummy is ready!',
 ]
 
 function JellyLab({ onHome }) {
   return (
     <GameShell
-      title="말랑젤리 연구소"
-      eyebrow="PENEFIT CREW JELLY LAB"
+      title="Gummy Lab"
+      eyebrow="PENEFIT CREW GUMMY LAB"
       characterId="jelly"
       onHome={onHome}
       right={<StepList steps={PLANNED_STEPS} />}
-      rightTitle="만들기 순서"
+      rightTitle="How to Make"
     >
       <BuildingStage
         emoji="🍮"
-        title="곰·하트·별 젤리틀로 만드는 말랑 펫 젤리 간식"
-        note="플레이 기능은 다음 작업 단계에서 만들어요. 게임 속 레시피는 놀이용 설정이에요."
+        title="Squishy pet gummies in bear, heart and star molds"
+        note="Play mode is coming in the next update. The recipes in this game are just for fun."
       />
     </GameShell>
   )

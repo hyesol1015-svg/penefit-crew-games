@@ -257,7 +257,8 @@
   font-size: clamp(0.92rem, 4.2vw, 1.05rem);
   line-height: 1.15;
   color: var(--ink);
-  white-space: nowrap;
+  /* 영어 게임 이름은 길어서 두 줄까지 자연스럽게 줄바꿈 */
+  white-space: normal;
 }
 
 .game-card__desc {

@@ -39,7 +39,7 @@ import '../../styles/bapkku.css'
  */
 
 // 다음 버튼에 쓰는 문구 (단계 번호 순서)
-const NEXT_LABELS = ['다음: 사료 ▶', '다음: 파우더 ▶', '다음: 토핑 ▶', '완성!']
+const NEXT_LABELS = ['Next: Food ▶', 'Next: Powder ▶', 'Next: Toppings ▶', 'Finish!']
 
 function BapkkuStudio({ onHome, onRestart, crewId }) {
   // 메인 화면에서 고른 크루 (안내 영역과 완성 화면에 등장)
@@ -60,7 +60,7 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
   const sceneRef = useRef(null) // 무대 (그릇 위치를 찾을 때 사용)
 
   // ── ③ 파우더 ──
-  const [topperId, setTopperId] = useState('pumpkin') // 선택한 토퍼
+  const [topperId, setTopperId] = useState(TOPPERS[0].id) // 선택한 토퍼 (처음엔 목록 첫 번째)
   const [bursts, setBursts] = useState([]) // 뿌린 파우더 묶음들 (순서대로 쌓임)
   const [notice, setNotice] = useState('') // 잠깐 보여 주는 안내 (예: 그릇 위로 옮겨 주세요)
   const strokeRef = useRef(0) // 지금 진행 중인 '뿌리기 동작' 번호 (되돌리기 단위)
@@ -166,7 +166,7 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
       if (total >= MAX_PARTICLES) return prev
       return [...prev, burst]
     })
-    if (count >= MAX_PARTICLES) showNotice('그릇이 파우더로 가득 찼어요!')
+    if (count >= MAX_PARTICLES) showNotice('Wow, the bowl is full of powder!')
   }
 
   /**
@@ -193,7 +193,7 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
     strokeRef.current = makeId()
   }
   const endStroke = (poured) => {
-    if (!poured) showNotice('파우더 통을 그릇 위로 옮겨서 흔들어 주세요!')
+    if (!poured) showNotice('Move the shaker over the bowl and shake!')
   }
 
   /** 보조 조작: 그릇을 톡 누르거나 문지르면 그 자리 위에서 가루가 떨어져요 */
@@ -225,20 +225,20 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
 
   /* ── 무대 위 안내 문구 ── */
   const hints = {
-    bowl: bowl ? `${bowl.name} 그릇 좋아요! 이제 사료를 담으러 가 볼까요?` : '마음에 드는 그릇을 골라 주세요!',
+    bowl: bowl ? `Love the ${bowl.name} bowl! Let's add some food.` : 'Pick a bowl you like!',
     food: isFull
-      ? '사료 가득! 이제 파우더를 뿌려 볼까요?'
+      ? 'All full! Time to add some powder.'
       : scoops === 0
-        ? '스쿱을 그릇으로 끌어다 놓거나 톡 눌러 보세요!'
-        : `사료 ${scoops}/${SCOOPS_TO_FILL} — 조금 더 담아 볼까요?`,
+        ? 'Drag the scoop to the bowl, or just tap it!'
+        : `Food ${scoops}/${SCOOPS_TO_FILL}. A little more!`,
     powder:
       notice ||
       (count === 0
-        ? '파우더 통을 그릇 위로 끌고 와서 살랑살랑 흔들어 보세요!'
+        ? 'Drag the shaker over the bowl and give it a shake!'
         : count < POWDER_MIN
-          ? `${topper.name} 솔솔~ 조금만 더 뿌려 볼까요?`
-          : '좋아요! 다른 파우더를 섞어 뿌려도 돼요.'),
-    topping: '토핑 꾸미기는 다음 업데이트에서 열려요. 지금 바로 완성할 수 있어요!',
+          ? `Yummy ${topper.name}! Just a bit more.`
+          : 'Great! Try mixing in another powder.'),
+    topping: 'Toppings are coming soon. You can finish your bowl now!',
   }
 
   /* ── 위쪽: 단계 표시 (+ 파우더 단계에서는 토핑 게이지) ── */
@@ -253,7 +253,7 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
             aria-valuemin={0}
             aria-valuemax={GOAL}
             aria-valuenow={Math.min(count, GOAL)}
-            aria-label="토핑 게이지"
+            aria-label="Powder gauge"
           >
             <div className="meter__fill" style={{ width: `${gauge * 100}%` }} />
             {STAR_STEPS.map((s, i) => (
@@ -268,7 +268,7 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
             ))}
           </div>
           <span className="stage__count">
-            토핑 알갱이 <b>{count}</b>개
+            Sprinkles <b>{count}</b>
           </span>
         </div>
       )}
@@ -277,7 +277,7 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
 
   /* ── 단계별 패널 내용 ── */
   const bowlPicker = (
-    <div className="option-grid" role="radiogroup" aria-label="그릇 색">
+    <div className="option-grid" role="radiogroup" aria-label="Bowl color">
       {BOWLS.map((b) => (
         <button
           key={b.id}
@@ -301,12 +301,12 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
 
   const foodPanel = (
     <div className="food-panel">
-      <div className="food-panel__meter" aria-label={`사료 ${scoops}/${SCOOPS_TO_FILL} 스쿱`}>
+      <div className="food-panel__meter" aria-label={`Food ${scoops} of ${SCOOPS_TO_FILL} scoops`}>
         {Array.from({ length: SCOOPS_TO_FILL }, (_, i) => (
           <span key={i} className={`food-panel__dot ${i < scoops ? 'is-filled' : ''}`} aria-hidden="true" />
         ))}
         <span className="food-panel__text">
-          {isFull ? '가득 찼어요!' : `${scoops} / ${SCOOPS_TO_FILL} 스쿱`}
+          {isFull ? 'All full!' : `${scoops} / ${SCOOPS_TO_FILL} scoops`}
         </span>
       </div>
       <button
@@ -315,15 +315,15 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
         onClick={() => scoopRef.current?.pour()}
         disabled={isFull}
       >
-        {isFull ? '사료 가득 ✓' : '한 스쿱 담기'}
+        {isFull ? 'Bowl Full ✓' : 'Add a Scoop'}
       </button>
-      <p className="panel-help">스쿱을 그릇으로 끌어다 놓아도 돼요.</p>
+      <p className="panel-help">You can also drag the scoop to the bowl.</p>
     </div>
   )
 
   const topperPicker = (
     <div className="powder-panel">
-      <div className="option-grid" role="radiogroup" aria-label="토퍼 파우더">
+      <div className="option-grid" role="radiogroup" aria-label="Topper powder">
         {TOPPERS.map((t) => {
           const active = topperId === t.id
           return (
@@ -334,28 +334,35 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
               aria-checked={active}
               className={`chip chip--topper ${active ? 'is-active' : ''}`}
               style={{ '--powder': t.label }}
-              onClick={() => setTopperId(t.id)}
+              onClick={() => {
+                setTopperId(t.id)
+                lastTapRef.current = 0 // 파우더를 바꾸면 '되돌리기'도 새 동작으로 시작
+              }}
             >
               <span className="chip__jar" aria-hidden="true">
                 <PowderJar topper={t} small />
               </span>
-              <span className="chip__name">{t.name}</span>
+              {/* 제품명 + 영문 컬러명 */}
+              <span className="chip__text">
+                <span className="chip__name">{t.name}</span>
+                <span className="chip__sub">{t.colorName}</span>
+              </span>
             </button>
           )
         })}
       </div>
       <div className="powder-panel__tools">
         <button type="button" className="tool-btn" onClick={undoPowder} disabled={count === 0}>
-          ↶ 되돌리기
+          ↶ Undo
         </button>
         <button type="button" className="tool-btn" onClick={clearPowder} disabled={count === 0}>
-          ↺ 전체 지우기
+          ↺ Clear All
         </button>
       </div>
       <p className="panel-help">
         {count < POWDER_MIN
-          ? `다음 단계까지 ${POWDER_MIN - count}알 더! · 그릇을 톡 눌러도 뿌려져요.`
-          : '그릇을 톡 누르거나 문질러도 뿌려져요.'}
+          ? `${POWDER_MIN - count} more to go! You can also tap the bowl.`
+          : 'Tip: tap or rub the bowl to sprinkle too.'}
       </p>
     </div>
   )
@@ -363,14 +370,14 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
   const toppingPanel = (
     <div className="coming-panel">
       <p>
-        <b>토핑 10종 꾸미기</b>는 다음 작업에서 만들어요.
+        <b>10 tasty toppings</b> are coming in the next update.
       </p>
-      <p className="panel-help">지금은 &lsquo;완성!&rsquo;을 눌러 결과를 볼 수 있어요.</p>
+      <p className="panel-help">Tap &lsquo;Finish!&rsquo; to see your bowl.</p>
     </div>
   )
 
   const panels = { bowl: bowlPicker, food: foodPanel, powder: topperPicker, topping: toppingPanel }
-  const panelTitles = { bowl: '그릇 고르기', food: '사료 담기', powder: '토퍼 파우더', topping: '토핑 꾸미기' }
+  const panelTitles = { bowl: 'Pick a Bowl', food: 'Add Food', powder: 'Topper Powder', topping: 'Toppings' }
 
   // 노트북 화면 왼쪽에만 보이는 레시피 카드 (작은 화면에서는 숨김)
   const recipeCard = (
@@ -393,7 +400,7 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
   const actions = (
     <>
       <button type="button" className="btn btn--ghost" onClick={goPrev} disabled={stepIndex === 0}>
-        ◀ 이전
+        ◀ Back
       </button>
       <button
         type="button"
@@ -409,14 +416,14 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
   return (
     <GameShell
       className={`bapkku bapkku--${step}`}
-      title="밥꾸 스튜디오"
+      title="Bowl Decorating Studio"
       characterId="bapkku"
       showCharacter={false}
       onHome={onHome}
       onRestart={onRestart}
       status={status}
       left={recipeCard}
-      leftTitle="오늘의 레시피"
+      leftTitle="Today's Recipe"
       leftClassName="panel--recipe"
       right={panels[step]}
       rightTitle={panelTitles[step]}
@@ -458,12 +465,12 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
             onSprinkle={bowlAction}
             label={
               !bowl
-                ? '아직 그릇을 고르지 않았어요'
+                ? 'No bowl picked yet'
                 : step === 'food'
-                  ? `${bowl.name} 그릇. 눌러서 사료를 담아요`
+                  ? `${bowl.name} bowl. Tap to add food`
                   : step === 'powder'
-                    ? `${bowl.name} 그릇. 눌러서 파우더를 뿌려요`
-                    : `${bowl.name} 그릇`
+                    ? `${bowl.name} bowl. Tap to sprinkle powder`
+                    : `${bowl.name} bowl`
             }
           />
         </div>
@@ -507,10 +514,10 @@ const CONFETTI = Array.from({ length: 24 }, (_, i) => ({
   round: i % 3 === 0,
 }))
 
-const STAR_MESSAGES = ['', '맛있어 보여요!', '정말 먹음직스러워요!', '최고의 밥꾸 셰프!']
+const STAR_MESSAGES = ['', 'Looks yummy!', 'So delicious!', 'Top Bowl Chef!']
 
 function CelebrationModal({ crew, bowl, bursts, count, stars, usedToppers, onRemake, onHome }) {
-  const toppingText = usedToppers.map((t) => t.name).join(' · ')
+  const toppingText = usedToppers.map((t) => t.name).join(', ')
 
   return (
     <div className="celebrate" role="dialog" aria-modal="true" aria-labelledby="celebrate-title">
@@ -532,10 +539,10 @@ function CelebrationModal({ crew, bowl, bursts, count, stars, usedToppers, onRem
 
       <div className="celebrate__card">
         <h2 id="celebrate-title" className="ribbon">
-          밥꾸 완성!
+          Bowl Complete!
         </h2>
 
-        <div className="celebrate__stars" aria-label={`별 ${stars}개`}>
+        <div className="celebrate__stars" aria-label={`${stars} of 3 stars`}>
           {[0, 1, 2].map((i) => (
             <span
               key={i}
@@ -553,7 +560,7 @@ function CelebrationModal({ crew, bowl, bursts, count, stars, usedToppers, onRem
           <Bowl bowl={bowl} fill={1} bursts={bursts} interactive={false} />
           {/* 함께 만든 크루가 옆에서 축하해 줘요 */}
           <div className="celebrate__cheer">
-            <span className="celebrate__say">{crew.name}: 맛있겠다!</span>
+            <span className="celebrate__say">{crew.name}: Yum!</span>
             <span className="celebrate__crew">
               <CrewSprite crew={crew} />
             </span>
@@ -561,17 +568,17 @@ function CelebrationModal({ crew, bowl, bursts, count, stars, usedToppers, onRem
         </div>
 
         <p className="celebrate__desc">
-          {bowl.name} 그릇에 <b>{toppingText}</b> 토퍼
+          A <b>{bowl.name}</b> bowl topped with <b>{toppingText}</b>.
           <br />
-          알갱이 <b>{count}개</b>를 뿌린 특별한 한 끼예요.
+          <b>{count}</b> sprinkles of love!
         </p>
 
         <div className="celebrate__actions">
           <button type="button" className="btn btn--primary" onClick={onRemake}>
-            다시 만들기
+            Start Over
           </button>
           <button type="button" className="btn btn--ghost" onClick={onHome}>
-            메인 화면으로
+            Home
           </button>
         </div>
       </div>

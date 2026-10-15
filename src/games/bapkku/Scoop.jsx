@@ -128,7 +128,7 @@ function Scoop({ disabled = false, isOverBowl, getPourPoint, onPour, ref }) {
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
-        aria-label="사료 스쿱. 그릇으로 끌어다 놓거나 눌러서 사료를 담아요"
+        aria-label="Food scoop. Drag it to the bowl or tap to add food."
         onKeyDown={handleKeyDown}
       >
         {scoopImage ? (

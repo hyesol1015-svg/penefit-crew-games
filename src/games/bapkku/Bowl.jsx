@@ -371,7 +371,7 @@ function Bowl({
       preserveAspectRatio="xMidYMax meet"
       role={canPress ? 'button' : 'img'}
       tabIndex={canPress ? 0 : -1}
-      aria-label={label ?? `${bowl.name} 사료 그릇`}
+      aria-label={label ?? `${bowl.name} food bowl`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={stopDrawing}

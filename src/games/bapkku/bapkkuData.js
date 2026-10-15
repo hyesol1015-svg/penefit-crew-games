@@ -14,7 +14,7 @@
 export const BOWLS = [
   {
     id: 'cream',
-    name: '크림',
+    name: 'Cream',
     rim: '#FFF9EC',
     rimShade: '#F0DAB0',
     body: '#F6E2BB',
@@ -26,7 +26,7 @@ export const BOWLS = [
   },
   {
     id: 'pink',
-    name: '핑크',
+    name: 'Pink',
     rim: '#FFEDF1',
     rimShade: '#F2BFCB',
     body: '#F8BFCB',
@@ -38,7 +38,7 @@ export const BOWLS = [
   },
   {
     id: 'mint',
-    name: '민트',
+    name: 'Mint',
     rim: '#EAF9F2',
     rimShade: '#B6E1CD',
     body: '#AEE0CB',
@@ -50,7 +50,7 @@ export const BOWLS = [
   },
   {
     id: 'lavender',
-    name: '라벤더',
+    name: 'Lavender',
     rim: '#F7F2FF',
     rimShade: '#D8CBF1',
     body: '#D6C8F0',
@@ -62,7 +62,7 @@ export const BOWLS = [
   },
   {
     id: 'butter',
-    name: '버터 옐로우',
+    name: 'Butter Yellow',
     rim: '#FFF9DE',
     rimShade: '#F4DA8E',
     body: '#FFDF8C',
@@ -80,90 +80,117 @@ export const BOWLS = [
  *   tip: 노트북 화면 왼쪽 '레시피 카드'에 보이는 설명
  * ───────────────────────────────────────────── */
 export const STEPS = [
-  { id: 'bowl', label: '그릇', tip: '마음에 드는 그릇을 골라요. 고른 그릇이 바로 조리대에 놓여요.' },
-  { id: 'food', label: '사료', tip: '스쿱을 그릇으로 끌어다 놓거나 톡 눌러서 사료를 가득 담아요.' },
-  { id: 'powder', label: '파우더', tip: '파우더를 고르고, 파우더 통을 그릇 위로 끌고 와서 살랑살랑 흔들어 뿌려요. 여러 가지를 섞어도 좋아요.' },
-  { id: 'topping', label: '토핑', tip: '원하는 토핑을 올려 꾸며요.' },
-  { id: 'done', label: '완성', tip: '완성된 밥꾸를 확인해요!' },
+  { id: 'bowl', label: 'Bowl', tip: 'Pick a bowl you love. It goes right onto the counter.' },
+  { id: 'food', label: 'Food', tip: 'Drag the scoop to the bowl, or tap it, until the bowl is full.' },
+  { id: 'powder', label: 'Powder', tip: 'Pick a powder, drag the shaker over the bowl and give it a shake. Mix as many as you like!' },
+  { id: 'topping', label: 'Toppings', tip: 'Add yummy toppings to decorate your bowl.' },
+  { id: 'done', label: 'Done', tip: 'Check out your finished bowl!' },
 ]
 
 // 그릇을 가득 채우는 데 필요한 스쿱 수
 export const SCOOPS_TO_FILL = 4
 
 /* ─────────────────────────────────────────────
- * 2. 토퍼 파우더 6종  ※ 게임용 임시 구성
- *    실제 페네핏 제품 구성과 다르면 이 배열만 고치면 됩니다.
- *    (id는 gameAssets.js 의 toppers 이미지 키와 같아야 해요)
+ * 2. 토퍼 파우더 6종 — 실제 PENEFIT Palette Powder 구성
  *
- *    colors   : 알갱이마다 무작위로 섞이는 색 (같은 계열)
- *    label    : 파우더 통 라벨 색
- *    grain    : 질감 — 'powder'(고운 가루) / 'flake'(얇은 조각) / 'grain'(굵은 알갱이)
- *    size     : 알갱이 크기 범위 [최소, 최대] (SVG 단위)
- *    opacity  : 알갱이 투명도 범위 [최소, 최대]
- *    density  : 한 번 뿌릴 때 나오는 양의 배율
+ *    ★ 파우더를 바꾸거나 색을 조정할 때는 이 배열만 고치면 됩니다.
+ *
+ *    name      : 화면에 보이는 제품명 (영어)
+ *    colorName : 영문 컬러명 (선택 카드·파우더 통 라벨에 표시)
+ *    color     : 게임용 참고 색상. 실제 제품 사진과 비교해서 나중에 조정하세요.
+ *                → 떨어지는 가루 색(밝은색·어두운색 섞임)은 이 색에서 자동으로 만들어져요.
+ *    image     : 실제 제품 이미지 경로 (없으면 null → 임시 파우더 통 그림 사용)
+ *                예) '/assets/toppers/beetroot.png'  (파일은 public/assets/toppers/ 에)
+ *                세로형 누끼 PNG(약 8:11), 뚜껑이 위쪽이면 가장 자연스러워요.
+ *    grain     : 가루 질감 — 'powder'(고운 가루) / 'flake'(얇은 조각) / 'grain'(굵은 알갱이)
+ *    size      : 알갱이 크기 범위 [최소, 최대] (SVG 단위)
+ *    opacity   : 알갱이 투명도 범위 [최소, 최대]
+ *    density   : 한 번 뿌릴 때 나오는 양의 배율
  * ───────────────────────────────────────────── */
-export const TOPPERS = [
+const TOPPER_DATA = [
   {
-    id: 'pumpkin',
-    name: '단호박',
-    colors: ['#F6B73C', '#F9C75A', '#E9A12A', '#FFD77E'],
-    label: '#F4B23A',
+    id: 'beetroot',
+    name: 'Beetroot',
+    colorName: 'RED',
+    color: '#CE829A',
+    image: null,
     grain: 'powder',
-    size: [0.9, 1.8],
+    size: [0.8, 1.6],
     opacity: [0.75, 1],
-    density: 1,
-  },
-  {
-    id: 'beet',
-    name: '비트루트',
-    colors: ['#C2306A', '#D6457E', '#A4245A', '#E0628F'],
-    label: '#C93A72',
-    grain: 'powder',
-    size: [0.75, 1.55],
-    opacity: [0.7, 0.95],
-    density: 1.1,
+    density: 1.05,
   },
   {
     id: 'broccoli',
-    name: '브로콜리',
-    colors: ['#8DC152', '#A6D26A', '#6FA63E', '#B9DE86'],
-    label: '#86BC4C',
+    name: 'Broccoli',
+    colorName: 'GREEN',
+    color: '#A8C97D',
+    image: null,
     grain: 'flake',
     size: [1, 1.9],
     opacity: [0.75, 1],
     density: 0.85,
   },
   {
-    id: 'carrot',
-    name: '당근',
-    colors: ['#F28A2E', '#F7A04A', '#E5741C', '#FFB565'],
-    label: '#F08A30',
-    grain: 'grain',
-    size: [1.2, 2.3],
-    opacity: [0.85, 1],
-    density: 0.75,
-  },
-  {
-    id: 'sweetPotato',
-    name: '고구마',
-    colors: ['#EAD3A6', '#F3E2BF', '#DCC08A', '#F8ECD2'],
-    label: '#D9B87E',
+    id: 'pumpkin',
+    name: 'Sweet Pumpkin',
+    colorName: 'YELLOW',
+    color: '#F0D16E',
+    image: null,
     grain: 'powder',
     size: [0.9, 1.8],
-    opacity: [0.65, 0.95],
+    opacity: [0.8, 1],
     density: 1,
   },
   {
-    id: 'salmon',
-    name: '연어',
-    colors: ['#F58C78', '#F9A592', '#EA7562', '#FFC0AF'],
-    label: '#F2846F',
+    id: 'psyllium',
+    name: 'Psyllium Husk',
+    colorName: 'BEIGE',
+    color: '#DCC693',
+    image: null,
     grain: 'flake',
-    size: [1.1, 2.1],
-    opacity: [0.8, 1],
-    density: 0.8,
+    size: [0.9, 1.9],
+    opacity: [0.75, 1],
+    density: 0.85,
+  },
+  {
+    id: 'chlorella',
+    name: 'Chlorella',
+    colorName: 'DEEP GREEN',
+    color: '#689F63',
+    image: null,
+    grain: 'powder',
+    size: [0.7, 1.5],
+    opacity: [0.7, 0.95],
+    density: 1.1,
+  },
+  {
+    id: 'purpleSweetPotato',
+    name: 'Purple Sweet Potato',
+    colorName: 'PURPLE',
+    color: '#B997BD',
+    image: null,
+    grain: 'powder',
+    size: [0.85, 1.7],
+    opacity: [0.75, 1],
+    density: 1,
   },
 ]
+
+/* 참고 색상 하나로 밝은색·어두운색을 만들어 주는 도우미 (색 조정은 color 한 곳만!) */
+function mix(hex, target, amount) {
+  const n = parseInt(hex.slice(1), 16)
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+  const out = ch.map((c) => Math.round(c + (target - c) * amount))
+  return `#${out.map((c) => c.toString(16).padStart(2, '0')).join('')}`
+}
+
+export const TOPPERS = TOPPER_DATA.map((t) => ({
+  ...t,
+  // 떨어지는 가루 색: [기본, 조금 밝게, 조금 어둡게, 더 밝게]
+  colors: [t.color, mix(t.color, 255, 0.18), mix(t.color, 0, 0.14), mix(t.color, 255, 0.34)],
+  // 파우더 통 라벨 색 (기본 색보다 살짝 진하게 해서 글자가 잘 보이게)
+  label: mix(t.color, 0, 0.08),
+}))
 
 /* ─────────────────────────────────────────────
  * 3. 사료가 담긴 영역 (SVG 좌표 기준 타원)

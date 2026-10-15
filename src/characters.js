@@ -30,32 +30,32 @@
 export const CREW = [
   {
     id: 'pene',
-    name: '페네',
-    species: '강아지',
+    name: 'Pene',
+    species: 'puppy',
     image: '/assets/characters/dog_brown.png',
     sheet: [1920, 644],
     front: [7, 33, 509, 605],
   },
   {
     id: 'sepsep',
-    name: '셉셉이',
-    species: '강아지',
+    name: 'Sepsep',
+    species: 'puppy',
     image: '/assets/characters/dog_cream.png',
     sheet: [1920, 669],
     front: [11, 34, 440, 617],
   },
   {
     id: 'pity',
-    name: '피티',
-    species: '고양이',
+    name: 'Piti',
+    species: 'kitty',
     image: '/assets/characters/cat_orange.png',
     sheet: [1920, 678],
     front: [30, 13, 451, 656],
   },
   {
     id: 'doldol',
-    name: '돌돌이',
-    species: '고양이',
+    name: 'Doldol',
+    species: 'kitty',
     image: '/assets/characters/cat_black.png',
     sheet: [1920, 671],
     front: [11, 19, 503, 634],
@@ -77,35 +77,35 @@ export const findCrew = (id) => CREW.find((c) => c.id === id) ?? CREW[0]
 export const CHARACTERS = {
   // 메인 화면 상단에 크게 들어가는 캐릭터
   main: {
-    name: '페네핏 크루',
+    name: 'PENEFIT Crew',
     image: null,
     emoji: '🐶',
   },
   // 밥꾸 스튜디오 화면 상단의 작은 캐릭터
   bapkku: {
-    name: '밥꾸 셰프',
+    name: 'Bowl Chef',
     image: null,
     emoji: '🐶',
   },
   // 쿠키 베이커리 / 멍푸치노 카페 / 말랑젤리 연구소 화면의 캐릭터
   cookie: {
-    name: '쿠키 셰프',
+    name: 'Cookie Chef',
     image: null,
     emoji: '🐶',
   },
   cafe: {
-    name: '카페 바리스타',
+    name: 'Café Barista',
     image: null,
     emoji: '🐶',
   },
   jelly: {
-    name: '젤리 연구원',
+    name: 'Gummy Scientist',
     image: null,
     emoji: '🐶',
   },
   // 완성 화면에서 축하해 주는 캐릭터
   cheer: {
-    name: '축하하는 크루',
+    name: 'Cheering Crew',
     image: null,
     emoji: '🎉',
   },

@@ -10,29 +10,29 @@ import BuildingStage, { StepList } from '../../components/BuildingStage.jsx'
  * 무대(children)와 패널(left/right), 버튼(actions)만 채우면 됩니다.
  */
 const PLANNED_STEPS = [
-  '반죽 재료 고르기',
-  '버튼 연타·드래그로 반죽 섞기',
-  '밀대로 반죽 밀기',
-  '쿠키틀 고르기 (강아지·고양이·하트·별)',
-  '오븐 굽기 타이밍 미니게임',
-  '아이싱과 장식 올리기',
-  '완성 화면',
+  'Pick your dough ingredients',
+  'Mix the dough (tap fast or drag)',
+  'Roll out the dough',
+  'Pick a cutter (puppy, kitty, heart, star)',
+  'Bake it! Oven timing mini game',
+  'Add icing and decorations',
+  'Ta-da! Your cookies are ready',
 ]
 
 function CookieBakery({ onHome }) {
   return (
     <GameShell
-      title="쿠키 베이커리"
+      title="Cookie Bakery"
       eyebrow="PENEFIT CREW BAKERY"
       characterId="cookie"
       onHome={onHome}
       right={<StepList steps={PLANNED_STEPS} />}
-      rightTitle="만들기 순서"
+      rightTitle="How to Make"
     >
       <BuildingStage
         emoji="🍪"
-        title="반죽부터 아이싱까지, 직접 만드는 펫 쿠키"
-        note="플레이 기능은 다음 작업 단계에서 만들어요. 지금은 화면 배치만 확인할 수 있어요."
+        title="Bake pet cookies, from dough to icing"
+        note="Play mode is coming in the next update. For now you can preview the layout."
       />
     </GameShell>
   )

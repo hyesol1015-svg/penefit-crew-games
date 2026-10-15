@@ -34,12 +34,18 @@ export const ASSETS = {
     scoop: null,
   },
 
-  // 토퍼 파우더 제품 이미지 (정사각형 투명 PNG)
-  // 넣으면 CSS로 그린 임시 병 대신 실제 제품 사진이 보입니다.
+  // 토퍼 파우더 제품 이미지 (투명 PNG)
+  // 넣으면 SVG로 그린 임시 파우더 통 대신 실제 제품 사진이 보입니다.
+  // 키 이름은 bapkkuData.js 의 TOPPERS id와 같아야 해요.
+  // 선택 버튼과 '끌어서 뿌리는 파우더 통' 모두 이 이미지로 바뀌어요.
+  // 권장: 세로형 투명 PNG(약 8:11 비율), 뚜껑(가루 나오는 곳)이 위쪽
   toppers: {
-    pumpkin: null,
-    beet: null,
-    broccoli: null,
+    pumpkin: null, // 단호박
+    beet: null, // 비트루트
+    broccoli: null, // 브로콜리
+    carrot: null, // 당근
+    sweetPotato: null, // 고구마
+    salmon: null, // 연어
   },
 }
 

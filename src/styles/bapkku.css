@@ -167,28 +167,63 @@
   filter: drop-shadow(0 0 6px var(--peach-deep));
 }
 
-/* 파우더 알갱이: 위에서 톡 떨어지며 나타남 */
+/* 사료 위에 내려앉은 파우더: 떨어지는 가루가 닿을 때 살며시 나타남 */
 .powder {
-  animation: powder-drop 0.55s cubic-bezier(0.3, 1.5, 0.55, 1) both;
+  animation: powder-land 0.18s ease-out both;
 }
 
-@keyframes powder-drop {
+@keyframes powder-land {
   from {
     opacity: 0;
-    transform: translateY(calc(var(--fall) * -1));
-  }
-  50% {
-    opacity: 1;
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: var(--o, 1);
   }
 }
 
-/* 완성 화면의 그릇은 애니메이션 없이 바로 표시 */
-.bowl-svg.is-static .powder {
-  animation: none;
+/* 파우더 통 입구에서 떨어지는 가루 (중력처럼 점점 빨라지며 떨어짐) */
+.fall {
+  opacity: 0;
+  animation-name: powder-fall;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.9, 0.55);
+  animation-fill-mode: both;
+}
+
+@keyframes powder-fall {
+  from {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy));
+  }
+  12% {
+    opacity: var(--o, 1);
+  }
+  85% {
+    opacity: var(--o, 1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+/* 가루가 떨어진 자리에 피어오르는 옅은 가루 구름 */
+.haze {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: haze 0.7s ease-out both;
+  pointer-events: none;
+}
+
+@keyframes haze {
+  from {
+    opacity: 0.32;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
 }
 
 /* 톡! 가루 구름 */
@@ -538,6 +573,13 @@
   .bapkku .jar-wrap {
     transform: scale(1.15);
   }
+}
+
+/* 긴 안내 문구는 화면 밖으로 나가지 않고 줄바꿈 */
+.bapkku .stage__hint {
+  max-width: 92%;
+  white-space: normal;
+  word-break: keep-all;
 }
 
 /* ==========================================================
@@ -981,4 +1023,203 @@
   .bapkku .panel--right {
     grid-column: 1 / -1;
   }
+}
+
+/* ==========================================================
+ * 파우더 통 (PowderShaker)
+ * ========================================================== */
+.shaker-home {
+  position: absolute;
+  top: 0;
+  right: 4%;
+  z-index: 4;
+  width: clamp(58px, 15%, 104px);
+  aspect-ratio: 80 / 110;
+  cursor: grab;
+  touch-action: none;
+}
+
+.shaker-home:active {
+  cursor: grabbing;
+}
+
+.shaker {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  filter: drop-shadow(0 10px 10px rgba(150, 90, 40, 0.25));
+  /* 기울기는 부드럽게, 위치는 손가락을 바로 따라가도록 */
+  transition: transform 0.12s ease-out;
+}
+
+.shaker:focus-visible {
+  outline: none;
+}
+
+.shaker:focus-visible .shaker__art {
+  filter: drop-shadow(0 0 6px var(--peach-deep));
+}
+
+.shaker__art {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 20%;
+}
+
+/* 기다리는 동안 '나를 잡아 줘!' 하고 통통 */
+.shaker:not(.is-tilted) .shaker__art {
+  animation: shaker-idle 2.6s ease-in-out infinite;
+}
+
+@keyframes shaker-idle {
+  0%,
+  70%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  78% {
+    transform: translateY(-6px) rotate(-5deg);
+  }
+  88% {
+    transform: translateY(0) rotate(3deg);
+  }
+}
+
+/* 가루가 나오는 동안 '탁탁' 흔들리는 손맛 */
+.shaker.is-pouring .shaker__art {
+  animation: shaker-pour 0.16s ease-in-out infinite alternate;
+}
+
+@keyframes shaker-pour {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(3px) rotate(-3deg);
+  }
+}
+
+.shaker__art.is-shake {
+  animation: shaker-pour 0.1s ease-in-out 4 alternate;
+}
+
+.powder-jar__svg,
+.powder-jar__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* 선택 칩 안의 작은 파우더 통 */
+.chip__jar {
+  display: block;
+  flex: none;
+  width: 28px;
+  height: 38px;
+}
+
+.chip--topper.is-active {
+  border-color: var(--powder);
+}
+
+/* 되돌리기 · 전체 지우기 */
+.powder-panel__tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tool-btn {
+  min-height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--font-head);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  box-shadow: 0 3px 0 #ecd2b6;
+  transition: transform 0.12s ease;
+  touch-action: manipulation;
+}
+
+.tool-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #ecd2b6;
+}
+
+.tool-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (min-width: 1280px) {
+  .chip__jar {
+    width: 34px;
+    height: 46px;
+  }
+}
+
+/* ==========================================================
+ * 세로가 짧은 세로 화면 (작은 휴대폰, 낮은 브라우저 창)
+ *   그릇이 너무 작아지지 않도록 위·아래 요소를 압축하고
+ *   재료 패널은 높이를 줄인 뒤 패널 안에서만 스크롤해요.
+ * ========================================================== */
+@media (orientation: portrait) and (max-height: 720px) {
+  .bapkku .shell__dock {
+    max-height: 36dvh;
+  }
+  .bapkku .shell__status {
+    gap: 4px;
+  }
+  .bapkku .stepbar__label {
+    display: none;
+  }
+  .bapkku .stepbar__dot {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+  .bapkku .stepbar__list::before {
+    top: 10px;
+  }
+  .bapkku .stage__hint {
+    margin-top: 0;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+  .bapkku .meter__bar {
+    height: 12px;
+  }
+  .bapkku .meter__star {
+    width: 20px;
+    height: 20px;
+    font-size: 0.8rem;
+  }
+  .bapkku .stage__count {
+    padding: 3px 9px;
+    font-size: 0.72rem;
+  }
+  .bapkku .panel-help {
+    display: none;
+  }
+  /* 되돌리기·전체 지우기 버튼이 스크롤에 가려지지 않게 맨 위로 */
+  .bapkku .powder-panel__tools {
+    order: -1;
+  }
+  .bapkku .tool-btn {
+    min-height: 34px;
+    font-size: 0.82rem;
+  }
+}
+
+/* 마우스로 누를 때 생기는 브라우저 기본 초점 테두리 숨기기
+   (키보드로 이동할 때는 위의 :focus-visible 은은한 빛으로 표시돼요) */
+.bowl-svg:focus,
+.shaker:focus,
+.scoop:focus {
+  outline: none;
 }

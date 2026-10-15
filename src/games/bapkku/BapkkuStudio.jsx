@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import Bowl from './Bowl.jsx'
 import Scoop from './Scoop.jsx'
+import PowderShaker from './PowderShaker.jsx'
+import PowderJar from './PowderJar.jsx'
 import StepBar from './StepBar.jsx'
 import GameShell from '../../components/GameShell.jsx'
 import CharacterSlot from '../../components/CharacterSlot.jsx'
-import { ASSETS, assetUrl } from '../../gameAssets.js'
 import {
   BOWLS,
   STEPS,
   SCOOPS_TO_FILL,
   TOPPERS,
+  FOOD_AREA,
   MAX_PARTICLES,
+  POWDER_MIN,
   STAR_STEPS,
   GOAL,
   getStars,
@@ -28,8 +31,8 @@ import '../../styles/bapkku.css'
  *   - 단계를 오가도 그릇·사료·파우더는 그대로 유지돼요. (state가 이 컴포넌트에 모여 있기 때문)
  *
  * 현재 구현 범위
- *   ①그릇(5종) ②사료 담기 ③파우더(기존 3종) ⑤완성 화면
- *   ④토핑 꾸미기, 파우더 6종, PNG 저장은 다음 작업에서 추가할 예정입니다.
+ *   ①그릇(5종) ②사료 담기 ③파우더 6종(통을 끌어서 뿌리기) ⑤완성 화면
+ *   ④토핑 꾸미기, PNG 저장은 다음 작업에서 추가할 예정입니다.
  *
  * 화면 배치는 공통 틀인 GameShell이 화면 크기에 맞춰 알아서 처리합니다.
  */
@@ -54,9 +57,11 @@ function BapkkuStudio({ onHome, onRestart }) {
 
   // ── ③ 파우더 ──
   const [topperId, setTopperId] = useState('pumpkin') // 선택한 토퍼
-  const [particles, setParticles] = useState([]) // 뿌려진 알갱이들
-  const [puffs, setPuffs] = useState([]) // 톡! 가루 구름 (최근 몇 개만)
-  const [shakeKey, setShakeKey] = useState(0) // 뿌릴 때 토퍼 병이 흔들리는 효과용
+  const [bursts, setBursts] = useState([]) // 뿌린 파우더 묶음들 (순서대로 쌓임)
+  const [notice, setNotice] = useState('') // 잠깐 보여 주는 안내 (예: 그릇 위로 옮겨 주세요)
+  const strokeRef = useRef(0) // 지금 진행 중인 '뿌리기 동작' 번호 (되돌리기 단위)
+  const lastTapRef = useRef(0) // 그릇을 톡톡 누를 때 같은 동작으로 묶기 위한 시각
+  const shakerRef = useRef(null)
 
   // 알갱이·연출마다 붙일 고유 번호 (state가 아니어도 되므로 ref 사용)
   const idCounter = useRef(0)
@@ -73,16 +78,16 @@ function BapkkuStudio({ onHome, onRestart }) {
   const isFull = scoops >= SCOOPS_TO_FILL
   const fill = scoops / SCOOPS_TO_FILL
 
-  const count = particles.length
+  const count = bursts.reduce((sum, b) => sum + b.particles.length, 0) // 뿌린 알갱이 수
   const stars = getStars(count)
   const gauge = Math.min(count / GOAL, 1)
-  const usedToppers = TOPPERS.filter((t) => particles.some((p) => p.topperId === t.id))
+  const usedToppers = TOPPERS.filter((t) => bursts.some((b) => b.topperId === t.id))
 
   /* ── 단계 조건: 이 조건이 채워져야 다음 단계로 갈 수 있어요 ── */
   const complete = {
     bowl: bowl !== null,
     food: isFull,
-    powder: count > 0,
+    powder: count >= POWDER_MIN, // 일정량 이상 뿌려야 다음 단계로
     topping: true, // 토핑은 다음 작업에서 구현 (지금은 바로 완성 가능)
   }
   // 갈 수 있는 가장 먼 단계 = 처음으로 '미완료'인 단계
@@ -133,26 +138,86 @@ function BapkkuStudio({ onHome, onRestart }) {
     return m ? new DOMPoint(200, 14).matrixTransform(m) : null
   }
 
-  /* ── ③ 파우더 뿌리기 (기존 기능 그대로) ── */
-  const handleSprinkle = (x, y) => {
-    const center = clampIntoFood(x, y) // 그릇 테두리를 눌러도 사료 위에 떨어지도록
-    const burst = createPowderBurst(center, topper, makeId)
-    // 너무 많아지면 가장 오래된 알갱이부터 지워 성능을 지킵니다.
-    setParticles((prev) => [...prev, ...burst].slice(-MAX_PARTICLES))
-    setPuffs((prev) => [...prev.slice(-3), { id: makeId(), x: center.x, y: center.y, color: topper.colors[0] }])
-    setShakeKey((k) => k + 1)
+  /* ── ③ 파우더 뿌리기 ── */
+
+  // 잠깐 보여 주는 안내 문구 (1.6초 뒤 사라짐)
+  const noticeTimer = useRef(null)
+  const showNotice = (text) => {
+    setNotice(text)
+    clearTimeout(noticeTimer.current)
+    noticeTimer.current = setTimeout(() => setNotice(''), 1600)
+  }
+  useEffect(() => () => clearTimeout(noticeTimer.current), [])
+
+  /**
+   * 사료 위에 파우더 한 줌 떨어뜨리기
+   * spout   : 가루가 나오는 곳 (SVG 좌표)
+   * landing : 떨어질 곳 (SVG 좌표, 사료 위)
+   */
+  const addBurst = (spout, landing, amount) => {
+    const burst = createPowderBurst({ spout, landing, topper, amount, makeId, stroke: strokeRef.current })
+    setBursts((prev) => {
+      const total = prev.reduce((sum, b) => sum + b.particles.length, 0)
+      // 입자가 너무 많아지면 더 이상 쌓지 않아요 (화면이 끊기지 않게)
+      if (total >= MAX_PARTICLES) return prev
+      return [...prev, burst]
+    })
+    if (count >= MAX_PARTICLES) showNotice('그릇이 파우더로 가득 찼어요!')
   }
 
-  const clearPowder = () => {
-    setParticles([])
-    setPuffs([])
+  /**
+   * 파우더 통에서 가루 붓기 — PowderShaker가 통 입구의 '화면 좌표'를 알려 줘요.
+   * 입구가 그릇 위에 있을 때만 뿌리고, 아니면 false를 돌려줘요.
+   *   - 입구의 좌우 위치 → 가루가 떨어지는 좌우 위치
+   *   - 입구의 위아래 위치 → 사료의 뒤쪽/앞쪽 (위에 있을수록 뒤쪽)
+   */
+  const pourFromShaker = (clientX, clientY, amount) => {
+    const p = toBowl(clientX, clientY)
+    if (!p) return false
+    if (p.x < 52 || p.x > 268 || p.y < -150 || p.y > 135) return false // 그릇 위가 아니에요
+    // 위아래 위치로 앞뒤를 정하고, 조금씩 흩어지게 무작위로 섞어요
+    const base = Math.max(-0.6, Math.min(0.6, (p.y / 90) * 0.6))
+    const depth = base + (Math.random() - 0.5) * 0.9
+    const landing = clampIntoFood(p.x + (Math.random() - 0.5) * 10, FOOD_AREA.cy + depth * FOOD_AREA.ry, 0.9)
+    const spout = { x: p.x, y: Math.min(p.y, landing.y - 26) }
+    addBurst(spout, landing, amount)
+    return true
   }
+
+  // 뿌리기 동작 시작/끝 (되돌리기를 위해 동작마다 새 번호)
+  const startStroke = () => {
+    strokeRef.current = makeId()
+  }
+  const endStroke = (poured) => {
+    if (!poured) showNotice('파우더 통을 그릇 위로 옮겨서 흔들어 주세요!')
+  }
+
+  /** 보조 조작: 그릇을 톡 누르거나 문지르면 그 자리 위에서 가루가 떨어져요 */
+  const handleTapSprinkle = (x, y) => {
+    const now = performance.now()
+    if (now - lastTapRef.current > 450) startStroke() // 잠깐 쉬었다 누르면 새 동작
+    lastTapRef.current = now
+    const landing = clampIntoFood(x, y)
+    addBurst({ x: landing.x + 8, y: landing.y - 70 }, landing, 4)
+  }
+
+  /** 마지막 동작 취소: 가장 최근 '뿌리기 동작'으로 생긴 가루만 지워요 */
+  const undoPowder = () => {
+    setBursts((prev) => {
+      if (prev.length === 0) return prev
+      const last = prev[prev.length - 1].stroke
+      return prev.filter((b) => b.stroke !== last)
+    })
+  }
+
+  /** 전체 파우더 초기화 */
+  const clearPowder = () => setBursts([])
 
   /** 완성 화면의 '다시 만들기': 처음 단계부터 새로 */
   const handleRemake = () => onRestart?.()
 
   // 단계마다 그릇을 눌렀을 때 하는 일
-  const bowlAction = step === 'food' ? () => scoopRef.current?.pour() : step === 'powder' ? handleSprinkle : undefined
+  const bowlAction = step === 'food' ? () => scoopRef.current?.pour() : step === 'powder' ? handleTapSprinkle : undefined
 
   /* ── 무대 위 안내 문구 ── */
   const hints = {
@@ -162,7 +227,13 @@ function BapkkuStudio({ onHome, onRestart }) {
       : scoops === 0
         ? '스쿱을 그릇으로 끌어다 놓거나 톡 눌러 보세요!'
         : `사료 ${scoops}/${SCOOPS_TO_FILL} — 조금 더 담아 볼까요?`,
-    powder: count > 0 ? `${topper.name} 파우더 솔솔~ 문질러도 뿌려져요!` : '토퍼를 고르고 그릇 위를 문질러 보세요!',
+    powder:
+      notice ||
+      (count === 0
+        ? '파우더 통을 그릇 위로 끌고 와서 살랑살랑 흔들어 보세요!'
+        : count < POWDER_MIN
+          ? `${topper.name} 솔솔~ 조금만 더 뿌려 볼까요?`
+          : '좋아요! 다른 파우더를 섞어 뿌려도 돼요.'),
     topping: '토핑 꾸미기는 다음 업데이트에서 열려요. 지금 바로 완성할 수 있어요!',
   }
 
@@ -251,7 +322,6 @@ function BapkkuStudio({ onHome, onRestart }) {
       <div className="option-grid" role="radiogroup" aria-label="토퍼 파우더">
         {TOPPERS.map((t) => {
           const active = topperId === t.id
-          const productImage = assetUrl(ASSETS.toppers[t.id])
           return (
             <button
               key={t.id}
@@ -259,34 +329,30 @@ function BapkkuStudio({ onHome, onRestart }) {
               role="radio"
               aria-checked={active}
               className={`chip chip--topper ${active ? 'is-active' : ''}`}
-              style={{ '--powder': t.colors[0] }}
+              style={{ '--powder': t.label }}
               onClick={() => setTopperId(t.id)}
             >
-              {/* 선택된 토퍼는 뿌릴 때마다 살짝 흔들려요 */}
-              <span
-                key={active ? shakeKey : 'idle'}
-                className={`jar-wrap ${active && shakeKey ? 'is-shaking' : ''}`}
-                aria-hidden="true"
-              >
-                {productImage ? (
-                  // 실제 제품 이미지 (gameAssets.js에서 설정) — 원본 그대로 표시
-                  <img className="jar-img" src={productImage} alt="" draggable="false" />
-                ) : (
-                  // 임시 파우더 병 (CSS)
-                  <span className="jar" style={{ '--powder': t.colors[0], '--powder-2': t.colors[2] }}>
-                    <span className="jar__lid" />
-                    <span className="jar__body" />
-                  </span>
-                )}
+              <span className="chip__jar" aria-hidden="true">
+                <PowderJar topper={t} small />
               </span>
               <span className="chip__name">{t.name}</span>
             </button>
           )
         })}
       </div>
-      <button type="button" className="text-btn" onClick={clearPowder} disabled={count === 0}>
-        ↺ 가루 모두 지우기
-      </button>
+      <div className="powder-panel__tools">
+        <button type="button" className="tool-btn" onClick={undoPowder} disabled={count === 0}>
+          ↶ 되돌리기
+        </button>
+        <button type="button" className="tool-btn" onClick={clearPowder} disabled={count === 0}>
+          ↺ 전체 지우기
+        </button>
+      </div>
+      <p className="panel-help">
+        {count < POWDER_MIN
+          ? `다음 단계까지 ${POWDER_MIN - count}알 더! · 그릇을 톡 눌러도 뿌려져요.`
+          : '그릇을 톡 누르거나 문질러도 뿌려져요.'}
+      </p>
     </div>
   )
 
@@ -354,7 +420,8 @@ function BapkkuStudio({ onHome, onRestart }) {
         isDone && (
           <CelebrationModal
             bowl={bowl}
-            particles={particles}
+            bursts={bursts}
+            count={count}
             stars={stars}
             usedToppers={usedToppers}
             onRemake={handleRemake}
@@ -374,8 +441,7 @@ function BapkkuStudio({ onHome, onRestart }) {
             bowl={bowl ?? BOWLS[0]}
             fill={fill}
             pourId={pourId}
-            particles={particles}
-            puffs={puffs}
+            bursts={bursts}
             onSprinkle={bowlAction}
             label={
               !bowl
@@ -388,6 +454,17 @@ function BapkkuStudio({ onHome, onRestart }) {
             }
           />
         </div>
+
+        {/* 파우더 단계에서만 파우더 통 등장 (고른 파우더로 바뀌어요) */}
+        {step === 'powder' && (
+          <PowderShaker
+            ref={shakerRef}
+            topper={topper}
+            onPour={pourFromShaker}
+            onStrokeStart={startStroke}
+            onStrokeEnd={endStroke}
+          />
+        )}
 
         {/* 사료 담기 단계에서만 스쿱 등장 */}
         {step === 'food' && (
@@ -419,7 +496,7 @@ const CONFETTI = Array.from({ length: 24 }, (_, i) => ({
 
 const STAR_MESSAGES = ['', '맛있어 보여요!', '정말 먹음직스러워요!', '최고의 밥꾸 셰프!']
 
-function CelebrationModal({ bowl, particles, stars, usedToppers, onRemake, onHome }) {
+function CelebrationModal({ bowl, bursts, count, stars, usedToppers, onRemake, onHome }) {
   const toppingText = usedToppers.map((t) => t.name).join(' · ')
 
   return (
@@ -460,7 +537,7 @@ function CelebrationModal({ bowl, particles, stars, usedToppers, onRemake, onHom
         <p className="celebrate__grade">{STAR_MESSAGES[stars]}</p>
 
         <div className="celebrate__plate">
-          <Bowl bowl={bowl} fill={1} particles={particles} interactive={false} />
+          <Bowl bowl={bowl} fill={1} bursts={bursts} interactive={false} />
           <div className="celebrate__cheer">
             <CharacterSlot characterId="cheer" size="sm" />
           </div>
@@ -469,7 +546,7 @@ function CelebrationModal({ bowl, particles, stars, usedToppers, onRemake, onHom
         <p className="celebrate__desc">
           {bowl.name} 그릇에 <b>{toppingText}</b> 토퍼
           <br />
-          알갱이 <b>{particles.length}개</b>를 뿌린 특별한 한 끼예요.
+          알갱이 <b>{count}개</b>를 뿌린 특별한 한 끼예요.
         </p>
 
         <div className="celebrate__actions">

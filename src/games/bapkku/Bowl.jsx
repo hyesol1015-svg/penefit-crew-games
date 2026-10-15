@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react'
-import { FOOD_AREA } from './bapkkuData.js'
+import { memo, useEffect, useId, useRef, useState } from 'react'
+import { FOOD_AREA, TOPPERS } from './bapkkuData.js'
 
 /* ─────────────────────────────────────────────
  * 사료 알갱이(키블) 재료
@@ -88,6 +88,147 @@ function placeOnSurface(u, v, s) {
   return { x: 160 + u * (s.rx - 4), y: s.cy + v * s.ry * 0.95 - lift }
 }
 
+/**
+ * KibblePile — 사료 알갱이 더미 (190개 × 3겹)
+ * 파우더를 뿌릴 때마다 다시 그리면 느려지므로 memo로 감싸서
+ * 사료 양(shownFill)이 바뀔 때만 다시 그립니다.
+ */
+const KibblePile = memo(function KibblePile({ shownFill, uid }) {
+  const surface = foodSurface(shownFill)
+  const kibbles = KIBBLES.filter((k) => k.rank < 0.35 + 0.65 * shownFill)
+    .map((k) => ({ ...k, ...placeOnSurface(k.u, k.v, surface) }))
+    .sort((a, b) => a.y - b.y) // 뒤쪽(위)부터 그려야 앞쪽 알갱이가 위에 겹쳐 보여요
+  return (
+    <>
+      {kibbles.map((k, i) => (
+        <g key={i} transform={`rotate(${k.rot} ${k.x} ${k.y})`}>
+          {/* 알갱이 그림자 → 알갱이 → 하이라이트 순서로 겹쳐 입체감 */}
+          <ellipse cx={k.x + 1} cy={k.y + 1.8} rx={k.rx} ry={k.ry} fill="#4a2a10" opacity="0.26" />
+          <ellipse cx={k.x} cy={k.y} rx={k.rx} ry={k.ry} fill={`url(#${uid}-kib${k.tone})`} />
+          {k.hole ? (
+            <ellipse cx={k.x} cy={k.y} rx={k.rx * 0.32} ry={k.ry * 0.32} fill="#6b411f" opacity="0.7" />
+          ) : (
+            <ellipse
+              cx={k.x - k.rx * 0.32}
+              cy={k.y - k.ry * 0.38}
+              rx={k.rx * 0.38}
+              ry={k.ry * 0.28}
+              fill="#FFFFFF"
+              opacity="0.38"
+            />
+          )}
+        </g>
+      ))}
+      {/* 앞쪽 그릇 테두리 아래로 드리운 그늘 */}
+      <path
+        d={`M${160 - surface.rx},${surface.cy} A${surface.rx},${surface.ry} 0 0 0 ${160 + surface.rx},${surface.cy}`}
+        fill="none"
+        stroke="#2e1606"
+        strokeOpacity="0.22"
+        strokeWidth="10"
+      />
+      {/* 사료 윗면 하이라이트 */}
+      <ellipse
+        cx="146"
+        cy={surface.cy - surface.dome * 0.6 - 4}
+        rx={surface.rx * 0.53}
+        ry="9"
+        fill="#FFF3DC"
+        opacity="0.14"
+      />
+    </>
+  )
+})
+
+/**
+ * 파우더 알갱이 하나 (고운 가루·굵은 알갱이는 동그라미, 조각은 납작한 타원)
+ */
+function Grain({ p, className, style }) {
+  return p.rx === p.ry ? (
+    <circle className={className} cx={p.x} cy={p.y} r={p.r} fill={p.color} style={style} />
+  ) : (
+    <ellipse
+      className={className}
+      cx={p.x}
+      cy={p.y}
+      rx={p.rx}
+      ry={p.ry}
+      fill={p.color}
+      transform={`rotate(${p.rot} ${p.x} ${p.y})`}
+      style={style}
+    />
+  )
+}
+
+/**
+ * LandedBurst — 사료 위에 내려앉은 파우더 한 줌
+ * 떨어지는 시간이 끝날 즈음 살며시 나타나서 '쌓인' 것처럼 보여요.
+ * 한 번 그린 묶음은 다시 그리지 않도록 memo 사용 (입자가 많아도 끊기지 않게)
+ */
+const LandedBurst = memo(function LandedBurst({ burst, animate, uid }) {
+  return (
+    <g>
+      {/* 가루가 소복이 덮인 느낌을 주는 옅은 색 막 (가운데 진하고 가장자리 투명) */}
+      <ellipse
+        className={animate ? 'powder' : undefined}
+        cx={burst.landing.x}
+        cy={burst.landing.y}
+        rx={burst.film.rx}
+        ry={burst.film.ry}
+        fill={`url(#${uid}-dust-${burst.topperId})`}
+        style={{ '--o': 0.55, opacity: 0.55, animationDelay: animate ? `${burst.particles[0]?.dur || 300}ms` : undefined }}
+      />
+      {burst.particles.map((p) => (
+        <Grain
+          key={p.id}
+          p={p}
+          className={animate ? 'powder' : undefined}
+          style={{
+            opacity: p.opacity,
+            '--o': p.opacity,
+            animationDelay: animate ? `${p.delay + p.dur * 0.82}ms` : undefined,
+          }}
+        />
+      ))}
+    </g>
+  )
+})
+
+/**
+ * FallingBurst — 파우더 통 입구에서 사료 위로 떨어지는 가루
+ * 각 알갱이가 '입구 위치(dx, dy)'에서 출발해 제자리로 떨어진 뒤 사라지고,
+ * 그 자리에 LandedBurst의 알갱이가 나타나요. 떨어진 곳엔 옅은 가루 구름이 퍼져요.
+ */
+const FallingBurst = memo(function FallingBurst({ burst }) {
+  return (
+    <g className="falling" aria-hidden="true">
+      {burst.particles.map((p) => (
+        <Grain
+          key={p.id}
+          p={p}
+          className="fall"
+          style={{
+            '--dx': `${p.dx}px`,
+            '--dy': `${p.dy}px`,
+            '--o': p.opacity,
+            animationDelay: `${p.delay}ms`,
+            animationDuration: `${p.dur}ms`,
+          }}
+        />
+      ))}
+      <ellipse
+        className="haze"
+        cx={burst.landing.x}
+        cy={burst.landing.y}
+        rx="14"
+        ry="6"
+        fill={burst.color}
+        style={{ animationDelay: `${burst.particles[0]?.dur * 0.7 || 200}ms` }}
+      />
+    </g>
+  )
+})
+
 // 그릇 몸통의 물방울 무늬 위치
 const BODY_DOTS = [
   [86, 132], [124, 146], [160, 150], [196, 146], [234, 132],
@@ -113,7 +254,7 @@ function isInsideBowl(x, y) {
  *   bowl        : BOWLS 중 하나 (색상 정보)
  *   fill        : 사료 양 0(빈 그릇) ~ 1(가득). 바뀌면 부드럽게 차오름
  *   pourId      : 값이 바뀔 때마다 스쿱에서 사료가 쏟아지는 연출
- *   particles   : 뿌려진 파우더 알갱이,  puffs : 톡! 가루 구름
+ *   bursts      : 뿌려진 파우더 묶음들 (bapkkuData.js 의 createPowderBurst 결과)
  *   onSprinkle  : (x, y) => void  — 그릇을 누르거나 문지른 SVG 좌표를 알려 줌
  *   interactive : false면 완성 화면처럼 보기 전용
  *   label       : 화면 읽기 프로그램용 설명
@@ -125,8 +266,7 @@ function Bowl({
   bowl,
   fill = 1,
   pourId = null,
-  particles = [],
-  puffs = [],
+  bursts = [],
   onSprinkle,
   interactive = true,
   label,
@@ -162,11 +302,8 @@ function Bowl({
 
   const surface = foodSurface(shownFill)
   const hasFood = shownFill > 0.01
-  const visibleKibbles = hasFood
-    ? KIBBLES.filter((k) => k.rank < 0.35 + 0.65 * shownFill)
-        .map((k) => ({ ...k, ...placeOnSurface(k.u, k.v, surface) }))
-        .sort((a, b) => a.y - b.y) // 뒤쪽(위)부터 그려야 앞쪽 알갱이가 위에 겹쳐 보여요
-    : []
+  // 떨어지는 연출은 최근 묶음 몇 개만 그려요 (이미 다 떨어진 건 필요 없음)
+  const fallingBursts = interactive ? bursts.slice(-14) : []
 
   // 떨어지는 알갱이가 내려앉을 위치 (목표 사료 양 기준)
   const landing = foodSurface(Math.max(fill, 0.25))
@@ -283,6 +420,14 @@ function Bowl({
             <stop offset="1" stopColor={dark} />
           </radialGradient>
         ))}
+        {/* 파우더별 '가루 막' 색 (가운데 진하고 가장자리로 갈수록 투명) */}
+        {TOPPERS.map((t) => (
+          <radialGradient key={t.id} id={`${uid}-dust-${t.id}`}>
+            <stop offset="0" stopColor={t.colors[0]} stopOpacity="0.85" />
+            <stop offset="0.6" stopColor={t.colors[1]} stopOpacity="0.4" />
+            <stop offset="1" stopColor={t.colors[1]} stopOpacity="0" />
+          </radialGradient>
+        ))}
         {/* 바닥 그림자를 부드럽게 퍼뜨리는 흐림 효과 */}
         <filter id={`${uid}-blur`} x="-20%" y="-50%" width="140%" height="200%">
           <feGaussianBlur stdDeviation="5" />
@@ -357,53 +502,11 @@ function Bowl({
             <g className="food">
               <path d={moundPath(surface)} fill={ref('food')} />
               <g clipPath={ref('mound')}>
-                {visibleKibbles.map((k, i) => (
-                  <g key={i} transform={`rotate(${k.rot} ${k.x} ${k.y})`}>
-                    {/* 알갱이 그림자 → 알갱이 → 하이라이트 순서로 겹쳐 입체감 */}
-                    <ellipse cx={k.x + 1} cy={k.y + 1.8} rx={k.rx} ry={k.ry} fill="#4a2a10" opacity="0.26" />
-                    <ellipse cx={k.x} cy={k.y} rx={k.rx} ry={k.ry} fill={ref(`kib${k.tone}`)} />
-                    {k.hole ? (
-                      <ellipse cx={k.x} cy={k.y} rx={k.rx * 0.32} ry={k.ry * 0.32} fill="#6b411f" opacity="0.7" />
-                    ) : (
-                      <ellipse
-                        cx={k.x - k.rx * 0.32}
-                        cy={k.y - k.ry * 0.38}
-                        rx={k.rx * 0.38}
-                        ry={k.ry * 0.28}
-                        fill="#FFFFFF"
-                        opacity="0.38"
-                      />
-                    )}
-                  </g>
-                ))}
+                <KibblePile shownFill={shownFill} uid={uid} />
 
-                {/* 앞쪽 그릇 테두리 아래로 드리운 그늘 */}
-                <path
-                  d={`M${160 - surface.rx},${surface.cy} A${surface.rx},${surface.ry} 0 0 0 ${160 + surface.rx},${surface.cy}`}
-                  fill="none"
-                  stroke="#2e1606"
-                  strokeOpacity="0.22"
-                  strokeWidth="10"
-                />
-                {/* 사료 윗면 하이라이트 */}
-                <ellipse
-                  cx="146"
-                  cy={surface.cy - surface.dome * 0.6 - 4}
-                  rx={surface.rx * 0.53}
-                  ry="9"
-                  fill="#FFF3DC"
-                  opacity="0.14"
-                />
-
-                {/* 뿌려진 파우더 알갱이 */}
-                {particles.map((p) => (
-                  <g
-                    key={p.id}
-                    className="powder"
-                    style={{ '--fall': `${p.fall}px`, animationDelay: `${p.delay}ms` }}
-                  >
-                    <circle cx={p.x} cy={p.y} r={p.r} fill={p.color} />
-                  </g>
+                {/* 사료 위에 쌓인 파우더 */}
+                {bursts.map((b) => (
+                  <LandedBurst key={b.id} burst={b} animate={interactive} uid={uid} />
                 ))}
               </g>
             </g>
@@ -432,9 +535,9 @@ function Bowl({
           </g>
         )}
 
-        {/* 톡! 할 때 퍼지는 가루 구름 */}
-        {puffs.map((puff) => (
-          <circle key={puff.id} className="puff" cx={puff.x} cy={puff.y} r="16" fill={puff.color} />
+        {/* 파우더 통에서 떨어지는 가루 */}
+        {fallingBursts.map((b) => (
+          <FallingBurst key={b.id} burst={b} />
         ))}
 
         {/* 테두리 반짝임 */}

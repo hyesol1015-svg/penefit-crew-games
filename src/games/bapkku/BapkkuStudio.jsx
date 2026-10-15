@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Bowl from './Bowl.jsx'
 import Scoop from './Scoop.jsx'
 import PowderShaker from './PowderShaker.jsx'
-import PowderJar from './PowderJar.jsx'
+import PowderIcon from './PowderIcon.jsx'
 import StepBar from './StepBar.jsx'
 import GameShell from '../../components/GameShell.jsx'
 import CrewSprite from '../../components/CrewSprite.jsx'
@@ -339,9 +339,8 @@ function BapkkuStudio({ onHome, onRestart, crewId }) {
                 lastTapRef.current = 0 // 파우더를 바꾸면 '되돌리기'도 새 동작으로 시작
               }}
             >
-              <span className="chip__jar" aria-hidden="true">
-                <PowderJar topper={t} small />
-              </span>
+              {/* 실제 파우더 아이콘 (없으면 임시 파우더 통으로 대체) */}
+              <PowderIcon topper={t} />
               {/* 제품명 + 영문 컬러명 */}
               <span className="chip__text">
                 <span className="chip__name">{t.name}</span>

@@ -1228,6 +1228,26 @@
   height: 38px;
 }
 
+/* 실제 페네핏 파우더 아이콘 (원본은 그대로, 화면에서만 동그랗게 잘라요) */
+.powder-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--powder, #e8d5b5) 55%, #fff), 0 2px 4px rgba(122, 74, 36, 0.16);
+  overflow: hidden;
+}
+.powder-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  clip-path: circle(45% at 50% 50%);
+  pointer-events: none;
+}
+
 .chip--topper.is-active {
   border-color: var(--powder);
 }
@@ -1267,6 +1287,10 @@
   .chip__jar {
     width: 34px;
     height: 46px;
+  }
+  .powder-icon {
+    width: 42px;
+    height: 42px;
   }
 }
 

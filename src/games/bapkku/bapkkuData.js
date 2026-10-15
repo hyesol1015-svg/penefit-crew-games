@@ -99,6 +99,8 @@ export const SCOOPS_TO_FILL = 4
  *    colorName : 영문 컬러명 (선택 카드·파우더 통 라벨에 표시)
  *    color     : 게임용 참고 색상. 실제 제품 사진과 비교해서 나중에 조정하세요.
  *                → 떨어지는 가루 색(밝은색·어두운색 섞임)은 이 색에서 자동으로 만들어져요.
+ *    icon      : 파우더 아이콘 경로 (선택 카드 + 파우더 통 라벨에 표시)
+ *                파일은 public/assets/powders/ 에. 없거나 못 불러오면 기존 임시 그림으로 표시돼요.
  *    image     : 실제 제품 이미지 경로 (없으면 null → 임시 파우더 통 그림 사용)
  *                예) '/assets/toppers/beetroot.png'  (파일은 public/assets/toppers/ 에)
  *                세로형 누끼 PNG(약 8:11), 뚜껑이 위쪽이면 가장 자연스러워요.
@@ -113,6 +115,7 @@ const TOPPER_DATA = [
     name: 'Beetroot',
     colorName: 'RED',
     color: '#CE829A',
+    icon: '/assets/powders/beetroot.png',
     image: null,
     grain: 'powder',
     size: [0.8, 1.6],
@@ -124,6 +127,7 @@ const TOPPER_DATA = [
     name: 'Broccoli',
     colorName: 'GREEN',
     color: '#A8C97D',
+    icon: '/assets/powders/broccoli.png',
     image: null,
     grain: 'flake',
     size: [1, 1.9],
@@ -135,6 +139,7 @@ const TOPPER_DATA = [
     name: 'Sweet Pumpkin',
     colorName: 'YELLOW',
     color: '#F0D16E',
+    icon: '/assets/powders/sweet_pumpkin.png',
     image: null,
     grain: 'powder',
     size: [0.9, 1.8],
@@ -146,6 +151,7 @@ const TOPPER_DATA = [
     name: 'Psyllium Husk',
     colorName: 'BEIGE',
     color: '#DCC693',
+    icon: '/assets/powders/psyllium_husk.png',
     image: null,
     grain: 'flake',
     size: [0.9, 1.9],
@@ -157,6 +163,7 @@ const TOPPER_DATA = [
     name: 'Chlorella',
     colorName: 'DEEP GREEN',
     color: '#689F63',
+    icon: '/assets/powders/chlorella.png',
     image: null,
     grain: 'powder',
     size: [0.7, 1.5],
@@ -168,6 +175,7 @@ const TOPPER_DATA = [
     name: 'Purple Sweet Potato',
     colorName: 'PURPLE',
     color: '#B997BD',
+    icon: '/assets/powders/purple_sweet_potato.png',
     image: null,
     grain: 'powder',
     size: [0.85, 1.7],

@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { assetUrl } from '../../gameAssets.js'
 
 /**
@@ -16,6 +16,10 @@ import { assetUrl } from '../../gameAssets.js'
  * props
  *   topper : TOPPERS 중 하나
  *   small  : 선택 버튼 안에 들어가는 작은 크기 (글자 생략)
+ *
+ * topper.icon (실제 페네핏 파우더 아이콘)이 있으면
+ * 통 모양은 그대로 두고, 앞 라벨에 아이콘(동그랗게 잘라서) + 영문 이름을 넣어요.
+ * 아이콘을 불러오지 못하면 예전 라벨(이름 + 컬러명)로 자동 대체돼요.
  */
 // 라벨 색이 밝으면 진한 글씨, 어두우면 흰 글씨
 function textColorOn(hex) {
@@ -35,6 +39,21 @@ function splitName(name) {
 function PowderJar({ topper, small = false }) {
   const uid = `j${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const productImage = assetUrl(topper.image)
+  const iconSrc = small ? null : assetUrl(topper.icon)
+  // 아이콘을 미리 불러 보고, 성공했을 때만 라벨에 넣어요 (실패하면 기존 라벨)
+  const [loadedIcon, setLoadedIcon] = useState(null)
+  useEffect(() => {
+    if (!iconSrc) return undefined
+    let alive = true
+    const img = new Image()
+    img.onload = () => alive && setLoadedIcon(iconSrc)
+    img.onerror = () => alive && setLoadedIcon(null)
+    img.src = iconSrc
+    return () => {
+      alive = false
+    }
+  }, [iconSrc])
+  const showIcon = !small && loadedIcon === iconSrc && !!iconSrc
 
   if (productImage) {
     return (
@@ -53,6 +72,9 @@ function PowderJar({ topper, small = false }) {
   const nameSize = longest > 9 ? 7.6 : longest > 7 ? 8.8 : 10
 
   const [c0, c1, c2] = topper.colors
+  // 아이콘 라벨은 조금 더 길어서 아래 창을 살짝 내려요
+  const winY = showIcon ? 82 : 78
+  const winH = showIcon ? 18 : 21
   return (
     <svg className="powder-jar__svg" viewBox="0 0 80 110" aria-hidden="true">
       <defs>
@@ -79,6 +101,9 @@ function PowderJar({ topper, small = false }) {
           <circle cx="4.5" cy="4" r="0.8" fill={c2} />
           <circle cx="4" cy="1" r="0.5" fill="#FFFFFF" opacity="0.5" />
         </pattern>
+        <clipPath id={`${uid}-icon`}>
+          <circle cx="40" cy="47" r="10" />
+        </clipPath>
       </defs>
 
       {/* 바닥 그림자 */}
@@ -88,13 +113,61 @@ function PowderJar({ topper, small = false }) {
       <rect x="12" y="26" width="56" height="78" rx="14" fill={`url(#${uid}-body)`} />
 
       {/* 아래쪽 투명 창으로 보이는 가루 */}
-      <rect x="18" y="78" width="44" height="21" rx="8" fill={`url(#${uid}-grain)`} />
-      <rect x="18" y="78" width="44" height="21" rx="8" fill="none" stroke="#FFFFFF" strokeOpacity="0.8" strokeWidth="1.5" />
-      <path d="M22,82 Q22,80 25,80 L30,80" stroke="#FFFFFF" strokeOpacity="0.7" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <rect x="18" y={winY} width="44" height={winH} rx="8" fill={`url(#${uid}-grain)`} />
+      <rect x="18" y={winY} width="44" height={winH} rx="8" fill="none" stroke="#FFFFFF" strokeOpacity="0.8" strokeWidth="1.5" />
+      <path d={`M22,${winY + 4} Q22,${winY + 2} 25,${winY + 2} L30,${winY + 2}`} stroke="#FFFFFF" strokeOpacity="0.7" strokeWidth="2" strokeLinecap="round" fill="none" />
 
       {/* 라벨: 제품명 + 영문 컬러명 */}
-      <rect x="12" y="38" width="56" height={small ? 28 : 36} rx="6" fill={`url(#${uid}-label)`} />
-      {small ? (
+      <rect
+        x="12"
+        y={showIcon ? 34 : 38}
+        width="56"
+        height={showIcon ? 45 : small ? 28 : 36}
+        rx="6"
+        fill={`url(#${uid}-label)`}
+      />
+      {showIcon ? (
+        <>
+          {/* 실제 파우더 아이콘: 원본은 그대로, 화면에서만 동그랗게 잘라요 */}
+          <circle cx="40" cy="47" r="11.2" fill="#FFFFFF" opacity="0.95" />
+          <image
+            href={loadedIcon}
+            x="29"
+            y="36"
+            width="22"
+            height="22"
+            preserveAspectRatio="xMidYMid slice"
+            clipPath={`url(#${uid}-icon)`}
+          />
+          {lines.map((line, i) => (
+            <text
+              key={line}
+              x="40"
+              y={(lines.length === 1 ? 67 : 64.5) + i * 7}
+              textAnchor="middle"
+              fontFamily="Fredoka, 'Nunito', sans-serif"
+              fontWeight="600"
+              fontSize={Math.min(nameSize, 7.6)}
+              fill={ink}
+            >
+              {line}
+            </text>
+          ))}
+          <text
+            x="40"
+            y={lines.length === 1 ? 74.5 : 76.8}
+            textAnchor="middle"
+            fontFamily="Fredoka, 'Nunito', sans-serif"
+            fontSize="4.6"
+            fontWeight="600"
+            fill={ink}
+            opacity="0.85"
+            letterSpacing="0.7"
+          >
+            {topper.colorName}
+          </text>
+        </>
+      ) : small ? (
         <>
           <circle cx="22" cy="52" r="3" fill="#FFFFFF" opacity="0.9" />
           <circle cx="58" cy="52" r="3" fill="#FFFFFF" opacity="0.9" />

@@ -263,7 +263,7 @@
   object-fit: contain;
 }
 
-/* 펫용 / 사람용 구분 표시 */
+/* 어떤 펫 메뉴인지 보여 주는 작은 표시 */
 .game-card__tag {
   padding: 3px 8px;
   border-radius: 999px;

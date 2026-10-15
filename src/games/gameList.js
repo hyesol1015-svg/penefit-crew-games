@@ -4,7 +4,7 @@
  * id       → 게임 화면을 찾는 열쇠 (games/index.js 의 GAME_SCREENS 와 같아야 함)
  * theme    → 카드 배경색 (styles/main.css 의 .game-card--테마이름)
  * emoji    → 임시 아이콘. gameAssets.js 의 gameThumbs 에 이미지를 넣으면 교체됩니다.
- * audience → 카드에 붙는 작은 표시 (펫용 / 사람용 구분)
+ * audience → 카드에 붙는 작은 표시 (어떤 펫 메뉴인지)
  *
  * 카드 순서를 바꾸고 싶으면 이 배열의 순서만 바꾸면 됩니다.
  */
@@ -36,10 +36,10 @@ export const GAMES = [
   {
     id: 'jelly',
     title: '말랑젤리 연구소',
-    desc: '색을 섞고 몰드에 부어 말랑 젤리 완성',
+    desc: '귀여운 젤리틀로 만드는 말랑 펫 젤리 간식',
     emoji: '🍮',
     theme: 'mint',
-    // 이 게임은 사람용 디저트 놀이 콘셉트입니다. (펫 식품과 구분)
-    audience: '사람용 디저트',
+    // 반려동물용 젤리 간식을 만드는 게임입니다. (무가당 재료 콘셉트)
+    audience: '펫 젤리 간식',
   },
 ]

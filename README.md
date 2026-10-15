@@ -63,7 +63,7 @@ src/
 │  ├─ CharacterSlot.jsx       # 캐릭터 이미지 자리 (이미지 없으면 이모지 표시)
 │  └─ BuildingStage.jsx       # 아직 구현 전인 게임의 임시 무대
 ├─ games/
-│  ├─ gameList.js             # 게임 카드 목록 (이름, 설명, 펫용/사람용 표시)
+│  ├─ gameList.js             # 게임 카드 목록 (이름, 설명, 펫 메뉴 표시)
 │  ├─ index.js                # 게임 id ↔ 게임 화면 연결 (등록부)
 │  ├─ bapkku/                 # 밥꾸 스튜디오 (플레이 가능)
 │  │  ├─ BapkkuStudio.jsx

@@ -1,30 +1,30 @@
 /* ==========================================================
  * main.css — 메인 화면 (게임 로비)
- * 세로 높이를 [캐릭터·타이틀] / [게임 카드판] 으로 나눠
- * 스크롤 없이 한 화면에 들어가게 합니다.
+ *
+ *   휴대폰 세로   : [캐릭터·타이틀] 위 / [카드판 2×2] 아래
+ *   아이패드 세로 : 같은 구조, 더 크게
+ *   가로 화면·노트북 : [캐릭터·타이틀] 왼쪽 / [카드판] 오른쪽
+ *
+ * 내용이 화면보다 커지는 아주 작은 화면에서만 세로 스크롤이 생겨서
+ * 카드가 화면 밖으로 잘리지 않습니다.
  * ========================================================== */
 
 .main-screen {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(min-content, 1fr) auto;
   gap: 10px;
+  overflow-y: auto;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
   /* 화면 높이에 따라 캐릭터 크기 자동 조절 */
-  --slot-lg: clamp(92px, 19dvh, 150px);
+  --slot-lg: clamp(84px, 19dvh, 150px);
 }
 
-.main-screen > :not(.kitchen, .toast) {
+.main-screen > :not(.kitchen) {
   position: relative;
   z-index: 1;
 }
 
-/* 아주 작은 화면에서만 스크롤 허용 (안전장치) */
-@media (max-height: 560px) {
-  .main-screen {
-    overflow-y: auto;
-  }
-}
-
-/* ── 상단: 캐릭터 + 타이틀 ── */
+/* ── 캐릭터 + 타이틀 ── */
 .lobby-hero {
   display: flex;
   flex-direction: column;
@@ -41,7 +41,7 @@
   padding: 8px 40px 14px;
 }
 
-/* 캐릭터 발밑의 동그란 무대 그림자 */
+/* 캐릭터 발밑의 동그란 그림자 */
 .lobby-hero__stage::after {
   content: '';
   position: absolute;
@@ -98,7 +98,6 @@
   letter-spacing: 0.04em;
   line-height: 1;
   color: var(--ink);
-  /* 버터색 두꺼운 외곽선 느낌의 게임 타이틀 */
   -webkit-text-stroke: 1px rgba(90, 66, 50, 0.15);
   text-shadow:
     0 2px 0 #fff,
@@ -136,7 +135,6 @@
   text-shadow: 0 1px 0 rgba(180, 90, 60, 0.45);
 }
 
-/* 리본 양쪽 꼬리 */
 .lobby-ribbon::before,
 .lobby-ribbon::after {
   content: '';
@@ -155,7 +153,7 @@
   transform: scaleX(-1);
 }
 
-/* ── 게임 카드판 (조리대 위에 놓인 크림색 보드) ── */
+/* ── 게임 카드판 ── */
 .game-board {
   padding: 12px 12px 14px;
   border-radius: 30px;
@@ -185,6 +183,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
+  min-width: 0;
   padding: 11px 11px 12px;
   border: 0;
   border-radius: 22px;
@@ -226,23 +225,8 @@
   --card-edge: #a6d6c0;
 }
 
-/* 플레이 가능한 카드의 PLAY 버튼이 '눌러 줘!' 하고 살짝 들썩임 */
-.game-card.is-playable .badge--play {
-  animation: nudge 2.6s ease-in-out 1s infinite;
-}
-
-@keyframes nudge {
-  0%,
-  86%,
-  100% {
-    transform: none;
-  }
-  90% {
-    transform: translateY(-4px) rotate(-1deg);
-  }
-  95% {
-    transform: translateY(0) rotate(0.6deg);
-  }
+.game-card:hover {
+  transform: translateY(-3px);
 }
 
 .game-card:active {
@@ -252,17 +236,21 @@
     0 1px 0 var(--card-edge);
 }
 
-.game-card.is-soon {
-  filter: saturate(0.7);
+.game-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 3px;
 }
 
 .game-card__thumb {
-  position: relative;
   display: grid;
   place-items: center;
+  flex: none;
   width: 46px;
   height: 46px;
-  margin-bottom: 3px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.8);
   font-size: 1.6rem;
@@ -275,16 +263,14 @@
   object-fit: contain;
 }
 
-.game-card.is-soon .game-card__thumb {
-  opacity: 0.75;
-}
-
-.game-card__lock {
-  position: absolute;
-  right: -6px;
-  bottom: -6px;
-  font-size: 0.85rem;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+/* 펫용 / 사람용 구분 표시 */
+.game-card__tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 0.66rem;
+  color: #8c6a50;
+  white-space: nowrap;
 }
 
 .game-card__title {
@@ -307,26 +293,18 @@
   margin-top: auto;
   padding: 5px 0;
   border-radius: 999px;
+  background: linear-gradient(180deg, #ffe58c, var(--butter-deep));
+  box-shadow: 0 3px 0 var(--butter-edge);
   text-align: center;
   font-family: var(--font-title);
   font-weight: 600;
   font-size: 0.78rem;
   letter-spacing: 0.08em;
-}
-
-.badge--play {
-  background: linear-gradient(180deg, #ffe58c, var(--butter-deep));
   color: #6b4320;
-  box-shadow: 0 3px 0 var(--butter-edge);
 }
 
-.badge--soon {
-  background: rgba(255, 255, 255, 0.75);
-  color: var(--ink-faint);
-}
-
-/* 세로가 짧은 화면: 카드 설명 숨기기 */
-@media (max-height: 700px) {
+/* 세로가 짧은 휴대폰: 카드 설명 숨기기 */
+@media (max-height: 700px) and (max-width: 767px) {
   .game-card__desc {
     display: none;
   }
@@ -336,29 +314,186 @@
   }
 }
 
-/* ── Coming Soon 안내 토스트 ── */
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
-  z-index: 10;
-  max-width: calc(100% - 40px);
-  padding: 12px 20px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--cream);
-  font-family: var(--font-head);
-  font-size: 0.95rem;
-  text-align: center;
-  white-space: nowrap;
-  box-shadow: var(--shadow-soft);
-  transform: translateX(-50%);
-  animation: toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+/* ==========================================================
+ * 아이패드 세로 (768px 이상, 세로 방향)
+ * ========================================================== */
+@media (min-width: 768px) and (orientation: portrait) {
+  .main-screen {
+    gap: 24px;
+    padding: 32px 48px 40px;
+    --slot-lg: clamp(130px, 20dvh, 210px);
+  }
+
+  .lobby-title {
+    font-size: 3.6rem;
+  }
+
+  .lobby-ribbon span {
+    font-size: 1.35rem;
+  }
+
+  .game-board {
+    width: min(100%, 720px);
+    justify-self: center;
+    padding: 22px;
+    border-radius: 40px;
+  }
+
+  .game-board__lead {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+  }
+
+  .game-grid {
+    gap: 18px;
+  }
+
+  .game-card {
+    min-height: 210px;
+    padding: 18px;
+    border-radius: 30px;
+    gap: 6px;
+  }
+
+  .game-card__thumb {
+    width: 68px;
+    height: 68px;
+    border-radius: 22px;
+    font-size: 2.4rem;
+  }
+
+  .game-card__tag {
+    font-size: 0.8rem;
+  }
+
+  .game-card__title {
+    font-size: 1.45rem;
+  }
+
+  .game-card__desc {
+    font-size: 0.95rem;
+  }
+
+  .game-card__badge {
+    padding: 9px 0;
+    font-size: 1rem;
+  }
 }
 
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 16px);
+/* ==========================================================
+ * 가로 화면 + 노트북: 왼쪽 캐릭터·타이틀 / 오른쪽 카드판
+ * ========================================================== */
+@media (orientation: landscape), (min-width: 1280px) {
+  .main-screen {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-rows: minmax(min-content, 1fr);
+    align-items: center;
+    column-gap: clamp(16px, 4vw, 64px);
+    padding:
+      calc(env(safe-area-inset-top, 0px) + 16px)
+      max(calc(env(safe-area-inset-right, 0px) + 20px), calc((100% - 1400px) / 2))
+      calc(env(safe-area-inset-bottom, 0px) + 16px)
+      max(calc(env(safe-area-inset-left, 0px) + 20px), calc((100% - 1400px) / 2));
+    --slot-lg: clamp(72px, 30dvh, 240px);
+  }
+
+  .game-board {
+    width: 100%;
+    max-width: 760px;
+    justify-self: center;
+  }
+
+  /* 조리대는 화면 아래 1/4 정도만 */
+  .main-screen .kitchen__counter {
+    height: 26%;
+  }
+}
+
+/* 노트북·큰 가로 화면: 카드를 크게 */
+@media (orientation: landscape) and (min-height: 640px) and (min-width: 1000px), (min-width: 1280px) and (min-height: 640px) {
+  .lobby-title {
+    font-size: clamp(2.8rem, 4.4vw, 4.4rem);
+  }
+
+  .lobby-ribbon span {
+    font-size: 1.4rem;
+  }
+
+  .game-board {
+    padding: 24px;
+    border-radius: 40px;
+  }
+
+  .game-board__lead {
+    margin-bottom: 18px;
+    font-size: 1.3rem;
+  }
+
+  .game-grid {
+    gap: 20px;
+  }
+
+  .game-card {
+    min-height: 220px;
+    padding: 20px;
+    border-radius: 30px;
+    gap: 6px;
+  }
+
+  .game-card__thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: 24px;
+    font-size: 2.6rem;
+  }
+
+  .game-card__tag {
+    font-size: 0.82rem;
+  }
+
+  .game-card__title {
+    font-size: 1.5rem;
+  }
+
+  .game-card__desc {
+    font-size: 0.98rem;
+  }
+
+  .game-card__badge {
+    padding: 10px 0;
+    font-size: 1.05rem;
+  }
+}
+
+/* 휴대폰 가로처럼 세로가 아주 낮은 화면: 압축 */
+@media (orientation: landscape) and (max-height: 520px) {
+  .lobby-title {
+    font-size: 1.9rem;
+  }
+  .lobby-hero__stage {
+    padding: 4px 30px 10px;
+  }
+  .lobby-ribbon {
+    margin-top: 8px;
+  }
+  .game-board {
+    padding: 10px;
+  }
+  .game-board__lead {
+    display: none;
+  }
+  .game-grid {
+    gap: 8px;
+  }
+  .game-card {
+    padding: 8px 10px 10px;
+  }
+  .game-card__desc {
+    display: none;
+  }
+  .game-card__thumb {
+    width: 38px;
+    height: 38px;
+    font-size: 1.3rem;
   }
 }

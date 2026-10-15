@@ -98,7 +98,6 @@ p {
 .app-frame {
   position: relative;
   width: 100%;
-  max-width: 460px;
   height: 100dvh;
   background: var(--wall);
   overflow: hidden;
@@ -107,21 +106,9 @@ p {
   transform: translateZ(0);
 }
 
-@media (min-width: 640px) {
-  .app-bg {
-    align-items: center;
-    padding: 24px;
-  }
-
-  .app-frame {
-    height: min(860px, calc(100dvh - 48px));
-    border-radius: 40px;
-    border: 7px solid #fff;
-    box-shadow:
-      0 30px 80px rgba(196, 140, 90, 0.28),
-      0 0 0 1px rgba(196, 140, 90, 0.1);
-  }
-}
+/* 예전에는 PC에서 휴대폰 크기 틀(460px)로 고정했지만,
+   지금은 노트북·아이패드·휴대폰 모두 화면 전체를 씁니다.
+   화면 크기별 배치는 shell.css(게임)와 main.css(메인)에서 처리해요. */
 
 /* 각 화면은 프레임을 꽉 채움 */
 .screen {
@@ -303,7 +290,7 @@ p {
   width: 44px;
   height: 44px;
   flex: none;
-  padding: 0 0 3px;
+  padding: 0;
   border: 0;
   border-radius: 50%;
   background: linear-gradient(180deg, #ffffff, #fff1e0);
@@ -311,11 +298,24 @@ p {
   font-size: 1.9rem;
   line-height: 1;
   color: var(--ink-soft);
+  fill: currentColor;
+  stroke: currentColor;
   box-shadow:
     0 4px 0 #ecd2b6,
     0 8px 14px rgba(196, 140, 90, 0.18);
   cursor: pointer;
   transition: transform 0.12s ease;
+}
+
+.round-btn .icon {
+  width: 52%;
+  height: 52%;
+  stroke-width: 0;
+}
+
+.round-btn .icon path[fill='none'] {
+  fill: none;
+  stroke-width: 2.6px;
 }
 
 .round-btn:active {

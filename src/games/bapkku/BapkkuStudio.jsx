@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import Bowl from './Bowl.jsx'
+import GameShell from '../../components/GameShell.jsx'
 import CharacterSlot from '../../components/CharacterSlot.jsx'
 import { ASSETS, assetUrl } from '../../gameAssets.js'
 import {
@@ -17,21 +18,21 @@ import '../../styles/bapkku.css'
 /**
  * BapkkuStudio — 밥꾸(밥 꾸미기) 스튜디오 게임
  *
- * 게임 흐름
+ * 게임 흐름 (현재 버전)
  *   1. 그릇 색 고르기 (크림 / 핑크 / 민트)
  *   2. 토퍼 파우더 고르기 (단호박 / 비트 / 브로콜리)
  *   3. 그릇 위를 톡톡 누르거나 문질러서 파우더 뿌리기
  *   4. [완성!] → 축하 화면(별점) → 다시 만들기 또는 메인으로
  *
- * 화면 구성 (모바일에서 스크롤 없이 한 화면에 들어가도록)
- *   ┌ HUD: 뒤로가기 · 게임 이름 · 캐릭터
- *   ├ 토핑 게이지 (별 3개)
- *   ├ 주방 무대: 그릇 (남은 높이를 모두 차지)
- *   └ 하단 트레이: 그릇 선택 · 토퍼 선택 · 초기화/완성 버튼
+ * 화면 배치는 공통 틀인 GameShell이 화면 크기에 맞춰 알아서 처리합니다.
+ *   status  → 토핑 게이지
+ *   무대    → 안내 말풍선 + 그릇
+ *   left    → 그릇 고르기,  right → 토퍼 파우더
+ *   actions → 초기화 / 완성 버튼
  *
  * 모든 게임 상태는 이 컴포넌트의 React state에 들어 있습니다.
  */
-function BapkkuStudio({ onHome }) {
+function BapkkuStudio({ onHome, onRestart }) {
   // ── 게임 상태 ──
   const [bowlId, setBowlId] = useState('cream') // 선택한 그릇
   const [topperId, setTopperId] = useState('pumpkin') // 선택한 토퍼
@@ -78,154 +79,148 @@ function BapkkuStudio({ onHome }) {
   }
 
   const hasTopping = count > 0
-  const kitchenBg = assetUrl(ASSETS.kitchenBackground)
 
-  return (
-    <div
-      className={`screen bapkku ${kitchenBg ? 'has-bg-image' : ''}`}
-      style={kitchenBg ? { backgroundImage: `url(${kitchenBg})` } : undefined}
-    >
-      {/* 배경 이미지가 없을 때만 보이는 임시 주방 (벽지 + 창문 + 선반) */}
-      <div className="kitchen" aria-hidden="true">
-        <div className="kitchen__window" />
+  /* ── 토핑 게이지 (무대 위쪽) ── */
+  const status = (
+    <div className="meter">
+      <div
+        className="meter__bar"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={GOAL}
+        aria-valuenow={Math.min(count, GOAL)}
+        aria-label="토핑 게이지"
+      >
+        <div className="meter__fill" style={{ width: `${gauge * 100}%` }} />
+        {STAR_STEPS.map((step, i) => (
+          <span
+            key={step}
+            className={`meter__star ${stars > i ? 'is-on' : ''}`}
+            style={{ left: `${Math.max((step / GOAL) * 100, 6)}%` }}
+            aria-hidden="true"
+          >
+            ★
+          </span>
+        ))}
       </div>
+      <span className="stage__count">
+        토핑 알갱이 <b>{count}</b>개
+      </span>
+    </div>
+  )
 
-      {/* ── HUD (상단 바) ── */}
-      <header className="hud">
-        <button type="button" className="round-btn" onClick={onHome} aria-label="메인 화면으로">
-          <span aria-hidden="true">‹</span>
+  /* ── 왼쪽 패널: 그릇 고르기 ── */
+  const bowlPicker = (
+    <div className="option-grid" role="radiogroup" aria-label="그릇 색">
+      {BOWLS.map((b) => (
+        <button
+          key={b.id}
+          type="button"
+          role="radio"
+          aria-checked={bowlId === b.id}
+          className={`chip ${bowlId === b.id ? 'is-active' : ''}`}
+          onClick={() => setBowlId(b.id)}
+        >
+          {/* 미니 그릇 모양 견본 */}
+          <span
+            className="chip__bowl"
+            style={{ '--rim': b.rim, '--body': b.body, '--shade': b.bodyShade }}
+            aria-hidden="true"
+          />
+          <span className="chip__name">{b.name}</span>
         </button>
-        <div className="hud__plate">
-          <span className="hud__eyebrow">PENEFIT CREW KITCHEN</span>
-          <h1 className="hud__title">밥꾸 스튜디오</h1>
-        </div>
-        <CharacterSlot characterId="bapkku" size="sm" />
-      </header>
+      ))}
+    </div>
+  )
 
-      {/* ── 토핑 게이지 + 알갱이 수 ── */}
-      <div className="meter">
-        <div className="meter__bar" role="progressbar" aria-valuemin={0} aria-valuemax={GOAL} aria-valuenow={Math.min(count, GOAL)} aria-label="토핑 게이지">
-          <div className="meter__fill" style={{ width: `${gauge * 100}%` }} />
-          {STAR_STEPS.map((step, i) => (
+  /* ── 오른쪽 패널: 토퍼 파우더 ── */
+  const topperPicker = (
+    <div className="option-grid" role="radiogroup" aria-label="토퍼 파우더">
+      {TOPPERS.map((t) => {
+        const active = topperId === t.id
+        const productImage = assetUrl(ASSETS.toppers[t.id])
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            className={`chip chip--topper ${active ? 'is-active' : ''}`}
+            style={{ '--powder': t.colors[0] }}
+            onClick={() => setTopperId(t.id)}
+          >
+            {/* 선택된 토퍼는 뿌릴 때마다 살짝 흔들려요 */}
             <span
-              key={step}
-              className={`meter__star ${stars > i ? 'is-on' : ''}`}
-              style={{ left: `${Math.max((step / GOAL) * 100, 6)}%` }}
+              key={active ? shakeKey : 'idle'}
+              className={`jar-wrap ${active && shakeKey ? 'is-shaking' : ''}`}
               aria-hidden="true"
             >
-              ★
+              {productImage ? (
+                // 실제 제품 이미지 (gameAssets.js에서 설정) — 원본 그대로 표시
+                <img className="jar-img" src={productImage} alt="" draggable="false" />
+              ) : (
+                // 임시 파우더 병 (CSS)
+                <span className="jar" style={{ '--powder': t.colors[0], '--powder-2': t.colors[2] }}>
+                  <span className="jar__lid" />
+                  <span className="jar__body" />
+                </span>
+              )}
             </span>
-          ))}
-        </div>
-        <span className="stage__count">
-          토핑 알갱이 <b>{count}</b>개
-        </span>
-      </div>
-
-      {/* ── 주방 무대 ── */}
-      <section className="stage">
-        {/* 그릇이 놓이는 나무 조리대 (배경 이미지를 쓰면 숨겨짐) */}
-        <div className="stage__counter" aria-hidden="true" />
-
-        <p className="stage__hint" aria-live="polite">
-          {hasTopping
-            ? `${topper.name} 파우더 솔솔~ 문질러도 뿌려져요!`
-            : '토퍼를 고르고 그릇을 톡톡 눌러 보세요!'}
-        </p>
-
-        <div className="stage__bowl">
-          <Bowl bowl={bowl} particles={particles} puffs={puffs} onSprinkle={handleSprinkle} />
-        </div>
-      </section>
-
-      {/* ── 하단 트레이 ── */}
-      <section className="tray">
-        <div className="tray__row">
-          <h2 className="tray__label">그릇</h2>
-          <div className="tray__options" role="radiogroup" aria-label="그릇 색">
-            {BOWLS.map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                role="radio"
-                aria-checked={bowlId === b.id}
-                className={`chip ${bowlId === b.id ? 'is-active' : ''}`}
-                onClick={() => setBowlId(b.id)}
-              >
-                {/* 미니 그릇 모양 견본 */}
-                <span
-                  className="chip__bowl"
-                  style={{ '--rim': b.rim, '--body': b.body, '--shade': b.bodyShade }}
-                  aria-hidden="true"
-                />
-                <span className="chip__name">{b.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="tray__row">
-          <h2 className="tray__label">토퍼</h2>
-          <div className="tray__options" role="radiogroup" aria-label="토퍼 파우더">
-            {TOPPERS.map((t) => {
-              const active = topperId === t.id
-              const productImage = assetUrl(ASSETS.toppers[t.id])
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  className={`chip chip--topper ${active ? 'is-active' : ''}`}
-                  style={{ '--powder': t.colors[0] }}
-                  onClick={() => setTopperId(t.id)}
-                >
-                  {/* 선택된 토퍼는 뿌릴 때마다 살짝 흔들려요 */}
-                  <span
-                    key={active ? shakeKey : 'idle'}
-                    className={`jar-wrap ${active && shakeKey ? 'is-shaking' : ''}`}
-                    aria-hidden="true"
-                  >
-                    {productImage ? (
-                      // 실제 제품 이미지 (gameAssets.js에서 설정) — 원본 그대로 표시
-                      <img className="jar-img" src={productImage} alt="" draggable="false" />
-                    ) : (
-                      // 임시 파우더 병 (CSS)
-                      <span className="jar" style={{ '--powder': t.colors[0], '--powder-2': t.colors[2] }}>
-                        <span className="jar__lid" />
-                        <span className="jar__body" />
-                      </span>
-                    )}
-                  </span>
-                  <span className="chip__name">{t.name}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="tray__actions">
-          <button type="button" className="btn btn--ghost" onClick={handleReset} disabled={!hasTopping}>
-            ↺ 초기화
+            <span className="chip__name">{t.name}</span>
           </button>
-          <button type="button" className="btn btn--primary" onClick={() => setIsDone(true)} disabled={!hasTopping}>
-            완성!
-          </button>
-        </div>
-      </section>
-
-      {/* ── 완성 축하 화면 ── */}
-      {isDone && (
-        <CelebrationModal
-          bowl={bowl}
-          particles={particles}
-          stars={stars}
-          usedToppers={usedToppers}
-          onRemake={handleRemake}
-          onHome={onHome}
-        />
-      )}
+        )
+      })}
     </div>
+  )
+
+  /* ── 하단 버튼 ── */
+  const actions = (
+    <>
+      <button type="button" className="btn btn--ghost" onClick={handleReset} disabled={!hasTopping}>
+        ↺ 초기화
+      </button>
+      <button type="button" className="btn btn--primary" onClick={() => setIsDone(true)} disabled={!hasTopping}>
+        완성!
+      </button>
+    </>
+  )
+
+  return (
+    <GameShell
+      className="bapkku"
+      title="밥꾸 스튜디오"
+      characterId="bapkku"
+      onHome={onHome}
+      onRestart={onRestart}
+      status={status}
+      left={bowlPicker}
+      leftTitle="그릇"
+      right={topperPicker}
+      rightTitle="토퍼"
+      actions={actions}
+      overlay={
+        isDone && (
+          <CelebrationModal
+            bowl={bowl}
+            particles={particles}
+            stars={stars}
+            usedToppers={usedToppers}
+            onRemake={handleRemake}
+            onHome={onHome}
+          />
+        )
+      }
+    >
+      <p className="stage__hint" aria-live="polite">
+        {hasTopping
+          ? `${topper.name} 파우더 솔솔~ 문질러도 뿌려져요!`
+          : '토퍼를 고르고 그릇을 톡톡 눌러 보세요!'}
+      </p>
+
+      <div className="stage__bowl">
+        <Bowl bowl={bowl} particles={particles} puffs={puffs} onSprinkle={handleSprinkle} />
+      </div>
+    </GameShell>
   )
 }
 

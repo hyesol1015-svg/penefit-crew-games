@@ -26,6 +26,22 @@ export const CHARACTERS = {
     image: null,
     emoji: '🐶',
   },
+  // 쿠키 베이커리 / 멍푸치노 카페 / 말랑젤리 연구소 화면의 캐릭터
+  cookie: {
+    name: '쿠키 셰프',
+    image: null,
+    emoji: '🐶',
+  },
+  cafe: {
+    name: '카페 바리스타',
+    image: null,
+    emoji: '🐶',
+  },
+  jelly: {
+    name: '젤리 연구원',
+    image: null,
+    emoji: '🐶',
+  },
   // 완성 화면에서 축하해 주는 캐릭터
   cheer: {
     name: '축하하는 크루',

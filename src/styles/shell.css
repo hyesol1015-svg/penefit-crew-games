@@ -601,8 +601,11 @@
 
 .building__note {
   max-width: 32em;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(255, 252, 245, 0.85);
   font-size: 0.82rem;
-  color: #8c6a50;
+  color: #7a5a40;
   word-break: keep-all;
 }
 

@@ -5,7 +5,8 @@ import PowderShaker from './PowderShaker.jsx'
 import PowderJar from './PowderJar.jsx'
 import StepBar from './StepBar.jsx'
 import GameShell from '../../components/GameShell.jsx'
-import CharacterSlot from '../../components/CharacterSlot.jsx'
+import CrewSprite from '../../components/CrewSprite.jsx'
+import { findCrew } from '../../characters.js'
 import {
   BOWLS,
   STEPS,
@@ -40,7 +41,10 @@ import '../../styles/bapkku.css'
 // 다음 버튼에 쓰는 문구 (단계 번호 순서)
 const NEXT_LABELS = ['다음: 사료 ▶', '다음: 파우더 ▶', '다음: 토핑 ▶', '완성!']
 
-function BapkkuStudio({ onHome, onRestart }) {
+function BapkkuStudio({ onHome, onRestart, crewId }) {
+  // 메인 화면에서 고른 크루 (안내 영역과 완성 화면에 등장)
+  const crew = findCrew(crewId)
+
   // ── 진행 상태 ──
   const [stepIndex, setStepIndex] = useState(0) // 지금 단계 (0 = 그릇)
   const [isDone, setIsDone] = useState(false) // 완성 화면 표시 여부
@@ -407,6 +411,7 @@ function BapkkuStudio({ onHome, onRestart }) {
       className={`bapkku bapkku--${step}`}
       title="밥꾸 스튜디오"
       characterId="bapkku"
+      showCharacter={false}
       onHome={onHome}
       onRestart={onRestart}
       status={status}
@@ -419,6 +424,7 @@ function BapkkuStudio({ onHome, onRestart }) {
       overlay={
         isDone && (
           <CelebrationModal
+            crew={crew}
             bowl={bowl}
             bursts={bursts}
             count={count}
@@ -430,9 +436,16 @@ function BapkkuStudio({ onHome, onRestart }) {
         )
       }
     >
-      <p className="stage__hint" aria-live="polite">
-        {hints[step]}
-      </p>
+      {/* 안내 영역: 고른 크루가 말풍선으로 알려 줘요 */}
+      <div className="guide">
+        <span key={step} className="guide__crew">
+          <CrewSprite crew={crew} />
+        </span>
+        <p className="stage__hint guide__bubble" aria-live="polite">
+          <span className="guide__name">{crew.name}</span>
+          {hints[step]}
+        </p>
+      </div>
 
       <div className="stage__bowl" ref={sceneRef}>
         {/* 그릇을 바꾸면 새 그릇이 '퐁' 하고 놓이도록 key로 다시 그림 */}
@@ -496,7 +509,7 @@ const CONFETTI = Array.from({ length: 24 }, (_, i) => ({
 
 const STAR_MESSAGES = ['', '맛있어 보여요!', '정말 먹음직스러워요!', '최고의 밥꾸 셰프!']
 
-function CelebrationModal({ bowl, bursts, count, stars, usedToppers, onRemake, onHome }) {
+function CelebrationModal({ crew, bowl, bursts, count, stars, usedToppers, onRemake, onHome }) {
   const toppingText = usedToppers.map((t) => t.name).join(' · ')
 
   return (
@@ -538,8 +551,12 @@ function CelebrationModal({ bowl, bursts, count, stars, usedToppers, onRemake, o
 
         <div className="celebrate__plate">
           <Bowl bowl={bowl} fill={1} bursts={bursts} interactive={false} />
+          {/* 함께 만든 크루가 옆에서 축하해 줘요 */}
           <div className="celebrate__cheer">
-            <CharacterSlot characterId="cheer" size="sm" />
+            <span className="celebrate__say">{crew.name}: 맛있겠다!</span>
+            <span className="celebrate__crew">
+              <CrewSprite crew={crew} />
+            </span>
           </div>
         </div>
 

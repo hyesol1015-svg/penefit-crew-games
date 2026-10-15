@@ -643,3 +643,31 @@
   font-weight: 600;
   color: #8a5f30;
 }
+
+/* HUD 오른쪽의 크루 캐릭터 (흰 동그라미 배지) */
+.shell__crew {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  padding: 4px 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 3px 0 #ecd2b6,
+    0 6px 12px rgba(196, 140, 90, 0.16);
+}
+
+.shell__crew .crew-sprite {
+  width: auto;
+  height: 100%;
+}
+
+@media (max-height: 520px) {
+  .shell__crew {
+    width: 38px;
+    height: 38px;
+    padding: 3px 7px;
+  }
+}

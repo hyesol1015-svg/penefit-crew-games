@@ -1,4 +1,5 @@
 import CharacterSlot from './CharacterSlot.jsx'
+import CrewSprite from './CrewSprite.jsx'
 import { ASSETS, assetUrl } from '../gameAssets.js'
 import '../styles/shell.css'
 
@@ -21,7 +22,9 @@ import '../styles/shell.css'
  *
  * props
  *   title, eyebrow : 상단에 보이는 게임 이름 / 작은 영문 제목
- *   characterId    : characters.js 의 캐릭터 키
+ *   characterId    : characters.js 의 캐릭터 키 (임시 이모지 자리)
+ *   crew           : 실제 크루 캐릭터 (있으면 characterId 대신 이 캐릭터를 보여 줘요)
+ *   showCharacter  : false면 상단 캐릭터 자리를 숨겨요 (게임 안에서 캐릭터를 따로 보여 줄 때)
  *   onHome         : 홈으로 돌아가기
  *   onRestart      : 다시하기 (없으면 버튼이 숨겨짐)
  *   status         : 무대 위쪽에 보일 정보 (게이지, 점수 등)
@@ -35,6 +38,8 @@ function GameShell({
   title,
   eyebrow = 'PENEFIT CREW KITCHEN',
   characterId,
+  crew,
+  showCharacter = true,
   onHome,
   onRestart,
   status,
@@ -81,7 +86,14 @@ function GameShell({
             </svg>
           </button>
         )}
-        <CharacterSlot characterId={characterId} size="sm" />
+        {showCharacter &&
+          (crew ? (
+            <span className="shell__crew" title={crew.name}>
+              <CrewSprite crew={crew} />
+            </span>
+          ) : (
+            <CharacterSlot characterId={characterId} size="sm" />
+          ))}
       </header>
 
       {/* ── 무대 ── */}

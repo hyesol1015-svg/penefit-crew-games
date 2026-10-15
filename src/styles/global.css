@@ -417,3 +417,22 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ----------------------------------------------------------
+ * 크루 캐릭터 앞모습 (CrewSprite)
+ * 상자 비율 = 앞모습 영역 비율, 넘치는 부분(옆·뒷모습)은 숨김
+ * ---------------------------------------------------------- */
+.crew-sprite {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.crew-sprite img {
+  position: absolute;
+  max-width: none;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}

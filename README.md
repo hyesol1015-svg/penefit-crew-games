@@ -55,12 +55,13 @@ npm run lint      # 코드 검사
 src/
 ├─ main.jsx                   # 앱 시작점 (global.css 불러오기)
 ├─ App.jsx                    # 화면 전환 (메인 ↔ 게임) + 처음부터 다시하기
-├─ characters.js              # ★ 캐릭터 이미지 설정 (캐릭터 PNG 교체)
+├─ characters.js              # ★ 페네핏 크루 4마리 + 앞모습 자르기 위치
 ├─ gameAssets.js              # ★ 배경·로고·썸네일·제품 이미지 설정
 ├─ components/
 │  ├─ MainScreen.jsx          # 메인 화면(로비): 캐릭터 + 타이틀 + 게임 카드 4개
 │  ├─ GameShell.jsx           # ★ 모든 게임이 함께 쓰는 반응형 게임 화면 틀
-│  ├─ CharacterSlot.jsx       # 캐릭터 이미지 자리 (이미지 없으면 이모지 표시)
+│  ├─ CrewSprite.jsx          # 크루 캐릭터 시트에서 앞모습만 잘라 보여 주기
+│  ├─ CharacterSlot.jsx       # 임시 캐릭터 자리 (이미지 없으면 이모지 표시)
 │  └─ BuildingStage.jsx       # 아직 구현 전인 게임의 임시 무대
 ├─ games/
 │  ├─ gameList.js             # 게임 카드 목록 (이름, 설명, 펫 메뉴 표시)
@@ -92,31 +93,44 @@ src/
 
 모든 게임은 `GameShell`을 쓰므로, 배치를 고치고 싶으면 `styles/shell.css` 한 곳만 수정하면 됩니다.
 
-## 3. 캐릭터 이미지(PNG) 교체 방법
+## 3. 페네핏 크루 캐릭터
 
-캐릭터 자리에는 지금 임시 이모지(🐶, 🎉)와 점선 원이 보입니다.
-캐릭터 얼굴은 코드로 그리지 않았으니, **원본 2D 캐릭터 PNG**를 넣어 주세요.
+### 지금 들어 있는 캐릭터
+`public/assets/characters/` 폴더의 원본 PNG 4개를 사용해요.
 
-1. `public/characters/` 폴더를 만들고 PNG 파일을 넣습니다.
-2. `src/characters.js`를 열어 `image` 값을 바꿉니다.
+| 파일 | 캐릭터 | 쓰이는 곳 |
+| --- | --- | --- |
+| `dog_brown.png` | 페네 | 메인 화면 크루 고르기, 밥꾸 안내 말풍선, 밥꾸 완성 화면 |
+| `dog_cream.png` | 셉셉이 | 〃 |
+| `cat_orange.png` | 피티 | 〃 |
+| `cat_black.png` | 돌돌이 | 〃 |
+
+- 각 PNG에는 **앞모습 · 옆모습 · 뒷모습 · 반대쪽 옆모습**이 가로로 나란히 있어요.
+- 원본 파일은 그대로 두고, 화면에서는 **앞모습 영역만 잘라서** 보여 줘요. (`components/CrewSprite.jsx`)
+- 잘라 낼 위치는 `src/characters.js`의 `CREW` 목록에 `front: [x, y, 가로, 세로]`로 적혀 있어요.
+  (이미지 픽셀을 분석해서 캐릭터 둘레에 10px 여유를 두고 정했어요)
+- 메인 화면에서 캐릭터를 누르면 선택되고, 새로고침해도 기억돼요.
+- `cat_black.png`는 배경이 투명하지 않고 흰색이에요. 그래서 모든 캐릭터를 흰 카드 위에 올려 자연스럽게 보이게 했어요.
+  투명 배경 PNG로 바꾸면 `characters.js`에서 `whiteBackground: true` 줄을 지워도 돼요.
+
+### 캐릭터 이미지를 바꾸거나 새로 추가할 때
+1. PNG를 `public/assets/characters/`에 넣어요.
+2. `src/characters.js`의 `CREW`에 항목을 고치거나 추가해요.
    ```js
-   main: {
-     name: '페네핏 크루',
-     image: '/characters/crew-main.png',   // ← null 대신 경로 입력
-     emoji: '🐶',
+   {
+     id: 'pene',                                  // 영어 이름 (겹치면 안 돼요)
+     name: '페네',                                // 화면에 보이는 이름
+     species: '강아지',
+     image: '/assets/characters/dog_brown.png',   // 파일 경로
+     sheet: [1920, 644],                          // 원본 이미지 전체 크기
+     front: [7, 33, 509, 605],                    // 앞모습 영역 [x, y, 가로, 세로]
    },
    ```
-3. 저장하면 바로 반영됩니다. 점선 테두리와 "캐릭터 자리" 문구는 자동으로 사라집니다.
+3. 이미지 크기나 그림 위치가 바뀌면 `sheet`와 `front` 값도 함께 고쳐 주세요.
+   값이 틀리면 옆모습이 같이 보이거나 몸이 잘려 보여요.
 
-| 키 | 표시 위치 | 권장 크기 |
-| --- | --- | --- |
-| `main` | 메인 화면 상단 창문 앞 | 512×512 이상 |
-| `bapkku` | 밥꾸 스튜디오 오른쪽 위 | 256×256 이상 |
-| `cheer` | 밥꾸 완성 화면 (그릇 옆) | 256×256 이상 |
-
-배경이 투명한 정사각형 PNG를 권장합니다. 파일이 없거나 경로가 틀리면 자동으로 이모지로 돌아갑니다.
-
----
+### 아직 이모지로 표시되는 자리
+쿠키·멍푸치노·젤리 게임 화면의 상단 캐릭터 자리는 아직 임시 이모지예요. (`characters.js`의 `CHARACTERS`)
 
 ## 4. 배경·로고·제품 이미지 교체 방법
 

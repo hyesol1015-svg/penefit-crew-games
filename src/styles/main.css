@@ -1,51 +1,79 @@
 /* ==========================================================
- * main.css — 메인 화면 (타이틀 + 게임 카드)
+ * main.css — 메인 화면 (게임 로비)
+ * 세로 높이를 [캐릭터·타이틀] / [게임 카드판] 으로 나눠
+ * 스크롤 없이 한 화면에 들어가게 합니다.
  * ========================================================== */
 
 .main-screen {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+  /* 화면 높이에 따라 캐릭터 크기 자동 조절 */
+  --slot-lg: clamp(92px, 19dvh, 150px);
+}
+
+.main-screen > :not(.kitchen, .toast) {
+  position: relative;
+  z-index: 1;
+}
+
+/* 아주 작은 화면에서만 스크롤 허용 (안전장치) */
+@media (max-height: 560px) {
+  .main-screen {
+    overflow-y: auto;
+  }
+}
+
+/* ── 상단: 캐릭터 + 타이틀 ── */
+.lobby-hero {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-}
-
-/* ── 상단 히어로 ── */
-.hero {
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
   text-align: center;
-  padding-top: 6px;
 }
 
-.hero__stage {
+.lobby-hero__stage {
   position: relative;
   display: grid;
   place-items: center;
-  height: 196px;
-  margin: 0 auto 14px;
-  border-radius: 0 0 50% 50% / 0 0 22% 22%;
-  /* 캐릭터 뒤의 둥근 버터색 무대 */
-  background:
-    radial-gradient(ellipse 70% 26% at 50% 88%, rgba(255, 180, 150, 0.35), transparent 70%),
-    radial-gradient(circle at 50% 46%, var(--butter) 0 34%, transparent 35%);
+  padding: 8px 40px 14px;
 }
 
-.hero__sparkle {
+/* 캐릭터 발밑의 동그란 무대 그림자 */
+.lobby-hero__stage::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: calc(var(--slot-lg) * 0.9);
+  height: 16px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(200, 130, 80, 0.25), transparent 70%);
+  z-index: -1;
+}
+
+.sparkle {
   position: absolute;
   color: var(--butter-deep);
   font-size: 1.1rem;
   animation: twinkle 2.4s ease-in-out infinite;
 }
-.hero__sparkle--1 {
-  top: 26px;
-  left: 22%;
+.sparkle--1 {
+  top: 10%;
+  left: 8px;
 }
-.hero__sparkle--2 {
-  top: 56px;
-  right: 20%;
+.sparkle--2 {
+  top: 26%;
+  right: 6px;
   color: var(--peach-deep);
   animation-delay: 0.6s;
 }
-.hero__sparkle--3 {
-  bottom: 40px;
-  left: 18%;
+.sparkle--3 {
+  bottom: 18%;
+  left: 18px;
   font-size: 0.8rem;
   animation-delay: 1.2s;
 }
@@ -62,43 +90,93 @@
   }
 }
 
-.hero__title {
+.lobby-title {
+  margin-top: 6px;
   font-family: var(--font-title);
   font-weight: 700;
-  font-size: clamp(2rem, 9vw, 2.5rem);
+  font-size: clamp(2rem, 9.5vw, 2.6rem);
   letter-spacing: 0.04em;
   line-height: 1;
   color: var(--ink);
-  /* 버터색 테두리 그림자로 말랑한 느낌 */
+  /* 버터색 두꺼운 외곽선 느낌의 게임 타이틀 */
+  -webkit-text-stroke: 1px rgba(90, 66, 50, 0.15);
   text-shadow:
-    0 3px 0 var(--butter-deep),
-    0 6px 14px rgba(233, 181, 68, 0.35);
+    0 2px 0 #fff,
+    0 5px 0 var(--butter-deep),
+    0 9px 16px rgba(232, 176, 63, 0.35);
 }
 
-.hero__subtitle {
+.lobby-title__logo {
+  display: block;
+  max-width: 240px;
+  max-height: 72px;
+  object-fit: contain;
+}
+
+/* 리본 모양 서브 타이틀 */
+.lobby-ribbon {
+  position: relative;
+  margin-top: 12px;
+  padding: 0 14px;
+}
+
+.lobby-ribbon span {
+  position: relative;
+  z-index: 1;
   display: inline-block;
-  margin-top: 10px;
-  padding: 4px 16px;
-  border-radius: 999px;
-  background: var(--peach);
+  padding: 5px 22px 6px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffc7ae, var(--peach-deep));
+  box-shadow: 0 4px 0 var(--peach-edge);
   font-family: var(--font-title);
   font-weight: 600;
-  font-size: 1.05rem;
-  letter-spacing: 0.12em;
-  color: #b9674a;
+  font-size: 1.02rem;
+  letter-spacing: 0.14em;
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(180, 90, 60, 0.45);
 }
 
-.hero__lead {
-  margin-top: 12px;
-  font-size: 0.95rem;
+/* 리본 양쪽 꼬리 */
+.lobby-ribbon::before,
+.lobby-ribbon::after {
+  content: '';
+  position: absolute;
+  top: 9px;
+  width: 26px;
+  height: 26px;
+  background: var(--peach-edge);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 35% 50%);
+}
+.lobby-ribbon::before {
+  left: 0;
+}
+.lobby-ribbon::after {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+/* ── 게임 카드판 (조리대 위에 놓인 크림색 보드) ── */
+.game-board {
+  padding: 12px 12px 14px;
+  border-radius: 30px;
+  background: rgba(255, 252, 245, 0.92);
+  box-shadow:
+    0 8px 0 rgba(217, 164, 108, 0.45),
+    0 18px 30px rgba(160, 100, 50, 0.18);
+}
+
+.game-board__lead {
+  margin-bottom: 10px;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: 0.98rem;
   color: var(--ink-soft);
 }
 
-/* ── 게임 카드 2×2 ── */
 .game-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .game-card {
@@ -106,20 +184,20 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
-  min-height: 168px;
-  padding: 16px 14px 14px;
+  gap: 3px;
+  padding: 11px 11px 12px;
   border: 0;
-  border-radius: var(--radius-lg);
+  border-radius: 22px;
   text-align: left;
   cursor: pointer;
   box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.8),
     0 5px 0 var(--card-edge),
-    var(--shadow-card);
+    0 8px 14px rgba(196, 140, 90, 0.16);
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease;
-  animation: card-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: card-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   touch-action: manipulation;
 }
 
@@ -132,122 +210,137 @@
 
 /* 카드 색 테마 */
 .game-card--peach {
-  background: linear-gradient(160deg, #ffe6d9, var(--peach));
-  --card-edge: #f3b89c;
+  background: linear-gradient(160deg, #ffece2, var(--peach));
+  --card-edge: #f0b294;
 }
 .game-card--butter {
-  background: linear-gradient(160deg, #fff4cc, var(--butter));
-  --card-edge: #ecd08a;
+  background: linear-gradient(160deg, #fff6d6, var(--butter));
+  --card-edge: #e8cd86;
 }
 .game-card--cream {
   background: linear-gradient(160deg, #fffdf7, #fff0db);
-  --card-edge: #ecd9bd;
+  --card-edge: #ead6b8;
 }
 .game-card--mint {
-  background: linear-gradient(160deg, #e9f8f0, var(--mint));
-  --card-edge: #a9d8c3;
+  background: linear-gradient(160deg, #ecf9f2, var(--mint));
+  --card-edge: #a6d6c0;
 }
 
-.game-card.is-playable:hover {
-  transform: translateY(-3px) rotate(-0.6deg);
+/* 플레이 가능한 카드의 PLAY 버튼이 '눌러 줘!' 하고 살짝 들썩임 */
+.game-card.is-playable .badge--play {
+  animation: nudge 2.6s ease-in-out 1s infinite;
+}
+
+@keyframes nudge {
+  0%,
+  86%,
+  100% {
+    transform: none;
+  }
+  90% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+  95% {
+    transform: translateY(0) rotate(0.6deg);
+  }
 }
 
 .game-card:active {
-  transform: translateY(4px);
+  transform: translateY(4px) scale(0.98);
   box-shadow:
-    0 1px 0 var(--card-edge),
-    var(--shadow-card);
-}
-
-/* 플레이 가능한 카드는 살짝 반짝이는 테두리 */
-.game-card.is-playable::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: calc(var(--radius-lg) + 3px);
-  border: 2.5px solid #fff;
-  pointer-events: none;
-  animation: glow 2.2s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 1;
-  }
+    inset 0 2px 0 rgba(255, 255, 255, 0.8),
+    0 1px 0 var(--card-edge);
 }
 
 .game-card.is-soon {
-  filter: saturate(0.75);
-}
-.game-card.is-soon .game-card__icon {
-  opacity: 0.65;
+  filter: saturate(0.7);
 }
 
-.game-card__icon {
+.game-card__thumb {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
-  margin-bottom: 4px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.75);
-  font-size: 1.9rem;
-  box-shadow: inset 0 -3px 0 rgba(196, 140, 90, 0.12);
+  width: 46px;
+  height: 46px;
+  margin-bottom: 3px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 1.6rem;
+  box-shadow: inset 0 -3px 0 rgba(196, 140, 90, 0.14);
+}
+
+.game-card__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.game-card.is-soon .game-card__thumb {
+  opacity: 0.75;
+}
+
+.game-card__lock {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  font-size: 0.85rem;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
 }
 
 .game-card__title {
   font-family: var(--font-head);
-  font-size: 1.12rem;
-  line-height: 1.2;
+  font-size: clamp(0.92rem, 4.2vw, 1.05rem);
+  line-height: 1.15;
   color: var(--ink);
+  white-space: nowrap;
 }
 
 .game-card__desc {
-  font-size: 0.8rem;
-  line-height: 1.35;
+  font-size: 0.72rem;
+  line-height: 1.3;
   color: var(--ink-soft);
   word-break: keep-all;
 }
 
 .game-card__badge {
+  align-self: stretch;
   margin-top: auto;
-  padding: 4px 11px;
+  padding: 5px 0;
   border-radius: 999px;
+  text-align: center;
   font-family: var(--font-title);
   font-weight: 600;
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
 }
 
 .badge--play {
-  background: var(--ink);
-  color: var(--butter);
+  background: linear-gradient(180deg, #ffe58c, var(--butter-deep));
+  color: #6b4320;
+  box-shadow: 0 3px 0 var(--butter-edge);
 }
 
 .badge--soon {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.75);
   color: var(--ink-faint);
 }
 
-.main-footer {
-  margin-top: auto;
-  padding-top: 4px;
-  text-align: center;
-  font-family: var(--font-title);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  color: var(--ink-faint);
+/* 세로가 짧은 화면: 카드 설명 숨기기 */
+@media (max-height: 700px) {
+  .game-card__desc {
+    display: none;
+  }
+  .game-board__lead {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
 }
 
 /* ── Coming Soon 안내 토스트 ── */
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
   z-index: 10;
   max-width: calc(100% - 40px);
   padding: 12px 20px;
@@ -257,6 +350,7 @@
   font-family: var(--font-head);
   font-size: 0.95rem;
   text-align: center;
+  white-space: nowrap;
   box-shadow: var(--shadow-soft);
   transform: translateX(-50%);
   animation: toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;

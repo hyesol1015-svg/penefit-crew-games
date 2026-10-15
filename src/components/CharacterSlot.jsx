@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CHARACTERS } from '../characters.js'
+import { assetUrl } from '../gameAssets.js'
 
 /**
  * CharacterSlot — 캐릭터 이미지가 들어가는 자리
@@ -14,11 +15,7 @@ function CharacterSlot({ characterId = 'main', size = 'md', showLabel = false })
   const [failed, setFailed] = useState(false)
 
   // '/characters/a.png' 처럼 /로 시작하는 경로는 배포 경로(BASE_URL)를 붙여 줍니다.
-  const src = character.image
-    ? character.image.startsWith('/')
-      ? import.meta.env.BASE_URL + character.image.slice(1)
-      : character.image
-    : null
+  const src = assetUrl(character.image)
 
   const hasImage = src && !failed
 

@@ -7,15 +7,47 @@
 
 /* ─────────────────────────────────────────────
  * 1. 사료 그릇 3종
- *    rim   : 그릇 테두리(윗면) 색
- *    body  : 그릇 몸통 색
- *    inner : 그릇 안쪽 벽 색
- *    dot   : 몸통에 찍힌 물방울 무늬 색
+ *    입체감을 위해 같은 색 계열을 밝은색(Light)·기본·그림자색(Shade)으로 나눴어요.
+ *    rim   : 그릇 테두리(윗면)      body  : 그릇 몸통
+ *    inner : 그릇 안쪽 벽           dot   : 몸통의 물방울 무늬
  * ───────────────────────────────────────────── */
 export const BOWLS = [
-  { id: 'cream', name: '크림', rim: '#FFF6E2', body: '#F6E2BB', inner: '#E9CFA0', dot: '#FFFFFF' },
-  { id: 'pink', name: '핑크', rim: '#FFE3E8', body: '#F8BFCB', inner: '#E8A3B2', dot: '#FFF2F5' },
-  { id: 'mint', name: '민트', rim: '#DDF5EA', body: '#AEE0CB', inner: '#8FCDB4', dot: '#F1FBF6' },
+  {
+    id: 'cream',
+    name: '크림',
+    rim: '#FFF9EC',
+    rimShade: '#F0DAB0',
+    body: '#F6E2BB',
+    bodyLight: '#FFF4DE',
+    bodyShade: '#D8BB87',
+    inner: '#EBD3A8',
+    innerShade: '#C7A46E',
+    dot: '#FFFFFF',
+  },
+  {
+    id: 'pink',
+    name: '핑크',
+    rim: '#FFEDF1',
+    rimShade: '#F2BFCB',
+    body: '#F8BFCB',
+    bodyLight: '#FFDDE4',
+    bodyShade: '#DB93A5',
+    inner: '#EDB2C0',
+    innerShade: '#C98093',
+    dot: '#FFF5F7',
+  },
+  {
+    id: 'mint',
+    name: '민트',
+    rim: '#EAF9F2',
+    rimShade: '#B6E1CD',
+    body: '#AEE0CB',
+    bodyLight: '#D4F2E5',
+    bodyShade: '#80BFA4',
+    inner: '#9DD4BC',
+    innerShade: '#6CAA8F',
+    dot: '#F3FBF7',
+  },
 ]
 
 /* ─────────────────────────────────────────────
@@ -33,10 +65,22 @@ export const TOPPERS = [
  *    Bowl.jsx 의 SVG viewBox(0 0 320 240) 안에서
  *    파우더가 떨어질 수 있는 범위입니다.
  * ───────────────────────────────────────────── */
-export const FOOD_AREA = { cx: 160, cy: 96, rx: 106, ry: 27 }
+export const FOOD_AREA = { cx: 160, cy: 90, rx: 104, ry: 25 }
 
 // 그릇에 쌓일 수 있는 최대 알갱이 수 (너무 많으면 휴대폰이 느려져요)
 export const MAX_PARTICLES = 900
+
+/* ─────────────────────────────────────────────
+ * 4. 별점 기준 (토핑 게이지)
+ *    알갱이 수가 기준을 넘을 때마다 별이 하나씩 켜져요.
+ *    GOAL은 게이지가 가득 차는 알갱이 수입니다.
+ * ───────────────────────────────────────────── */
+export const STAR_STEPS = [1, 60, 120]
+export const GOAL = 150
+
+export function getStars(count) {
+  return STAR_STEPS.filter((step) => count >= step).length
+}
 
 /**
  * 점(x, y)이 사료 영역 바깥이면 영역 안쪽으로 끌어당긴 좌표를 돌려줍니다.

@@ -1,57 +1,195 @@
 /* ==========================================================
  * bapkku.css — 밥꾸 스튜디오 게임 화면
+ *
+ * 세로 배치 (스크롤 없음)
+ *   HUD(자동) / 게이지(자동) / 무대(남은 높이 전부) / 트레이(자동)
  * ========================================================== */
 
 .bapkku {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background:
-    radial-gradient(ellipse 120% 50% at 50% 0%, var(--butter) 0%, transparent 60%),
-    var(--cream);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding-bottom: 0;
 }
 
-/* ── 상단 바 ── */
-.bapkku__header {
+.bapkku > :not(.kitchen, .celebrate) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── HUD ── */
+.hud {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.bapkku__heading {
+.hud__plate {
   flex: 1;
   min-width: 0;
+  padding: 5px 10px 7px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffdf7, #fff1d9);
   text-align: center;
+  box-shadow:
+    inset 0 2px 0 #fff,
+    0 4px 0 #f0d3a8,
+    0 8px 14px rgba(196, 140, 90, 0.15);
 }
 
-.bapkku__eyebrow {
+.hud__eyebrow {
+  display: block;
   font-family: var(--font-title);
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  color: var(--ink-soft);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--peach-edge);
 }
 
-.bapkku__title {
+.hud__title {
   font-family: var(--font-head);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 400;
+  line-height: 1.15;
   color: var(--ink);
 }
 
-/* ── 안내 말풍선 ── */
-.bapkku__hint {
-  position: relative;
-  align-self: center;
-  padding: 9px 18px;
-  border-radius: 999px;
-  background: #fff;
-  font-size: 0.88rem;
-  color: var(--ink-soft);
-  text-align: center;
-  box-shadow: var(--shadow-card);
+/* ── 토핑 게이지 ── */
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
 }
 
-.bapkku__hint::after {
+.meter__bar {
+  position: relative;
+  flex: 1;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    inset 0 2px 4px rgba(150, 100, 60, 0.18),
+    0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.meter__fill {
+  height: 100%;
+  border-radius: 999px;
+  /* 사선 줄무늬가 천천히 흐르는 게이지 */
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.35) 0 6px, transparent 6px 12px) 0 0 / 34px 34px,
+    linear-gradient(90deg, var(--butter-deep), var(--peach-deep));
+  box-shadow: inset 0 -3px 0 rgba(200, 110, 60, 0.18);
+  transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: stripe-flow 1.2s linear infinite;
+}
+
+@keyframes stripe-flow {
+  to {
+    background-position: 34px 0, 0 0;
+  }
+}
+
+.meter__star {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  color: #e9dccb;
+  box-shadow: 0 2px 0 #ecd2b6;
+  transition: color 0.2s ease;
+}
+
+.meter__star:last-child {
+  transform: translate(-70%, -50%);
+}
+
+.meter__star.is-on {
+  color: #ffbf2f;
+  text-shadow: 0 1px 0 #e08f12;
+  animation: star-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes star-pop {
+  0% {
+    scale: 0.4;
+  }
+  60% {
+    scale: 1.35;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+.stage__count {
+  flex: none;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  box-shadow: 0 2px 0 #ecd2b6;
+}
+
+.stage__count b {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+/* ── 주방 무대 ── */
+.stage {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 나무 조리대: 무대 아래쪽을 화면 끝까지 가득 채움 */
+.stage__counter {
+  position: absolute;
+  left: -14px;
+  right: -14px;
+  bottom: -30px;
+  height: calc(34% + 30px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0 5px, transparent 5px),
+    repeating-linear-gradient(180deg, transparent 0 30px, rgba(185, 125, 70, 0.12) 30px 32px),
+    linear-gradient(180deg, var(--wood-light) 0%, var(--wood) 100%);
+  box-shadow: 0 -4px 14px rgba(160, 100, 50, 0.12);
+}
+
+.has-bg-image .stage__counter {
+  display: none;
+}
+
+/* 말풍선 안내 */
+.stage__hint {
+  position: relative;
+  align-self: center;
+  margin-top: 4px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--font-head);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 #f1dcc6, var(--shadow-card);
+  animation: hint-float 2.8s ease-in-out infinite;
+}
+
+.stage__hint::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -63,51 +201,27 @@
   border-radius: 2px;
 }
 
-/* ── 그릇 무대 ── */
-.bapkku__stage {
+@keyframes hint-float {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.stage__bowl {
   position: relative;
-  display: grid;
-  place-items: center;
-  padding: 12px 6px 30px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2%;
 }
 
-/* 그릇 아래 체크무늬 식탁 매트 */
-.stage__mat {
-  position: absolute;
-  left: 6%;
-  right: 6%;
-  bottom: 12px;
-  height: 58%;
-  border-radius: 50%;
-  background:
-    repeating-linear-gradient(45deg, rgba(255, 180, 150, 0.22) 0 12px, transparent 12px 24px),
-    repeating-linear-gradient(-45deg, rgba(255, 180, 150, 0.22) 0 12px, transparent 12px 24px),
-    var(--peach);
-  opacity: 0.55;
-}
-
-.stage__count {
-  position: absolute;
-  right: 6px;
-  bottom: 2px;
-  padding: 4px 11px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
-  font-size: 0.75rem;
-  color: var(--ink-soft);
-}
-
-.stage__count b {
-  font-family: var(--font-title);
-  color: var(--ink);
-}
-
-/* SVG 그릇 */
+/* SVG 그릇: 무대 높이에 맞춰 자동으로 크기 조절 (바닥 정렬) */
 .bowl-svg {
-  position: relative;
+  display: block;
   width: 100%;
-  max-width: 360px;
-  height: auto;
+  height: 100%;
+  max-width: 400px;
   overflow: visible;
   user-select: none;
   -webkit-user-select: none;
@@ -123,7 +237,7 @@
   outline: none;
 }
 
-.bowl-svg.is-interactive:focus-visible .bowl-hit {
+.bowl-svg.is-interactive:focus-visible .bowl-art {
   filter: drop-shadow(0 0 6px var(--peach-deep));
 }
 
@@ -170,85 +284,116 @@
   }
 }
 
-/* ── 선택 패널 ── */
-.bapkku__panel {
+/* ── 하단 트레이 (화면 아래에서 올라온 시트) ── */
+.tray {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px 14px;
-  border-radius: var(--radius-lg);
-  background: #fff;
-  box-shadow: var(--shadow-soft);
+  gap: 8px;
+  margin: 0 -14px;
+  padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  border-radius: 28px 28px 0 0;
+  background: linear-gradient(180deg, #fffdf8, #fff6e8);
+  box-shadow:
+    0 -2px 0 #fff inset,
+    0 -10px 26px rgba(160, 100, 50, 0.16);
 }
 
-.picker__label {
-  display: flex;
+.tray__row {
+  display: grid;
+  grid-template-columns: 40px 1fr;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
-  font-family: var(--font-head);
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--ink);
 }
 
-.picker__step {
+.tray__label {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--butter-deep);
-  font-family: var(--font-title);
-  font-size: 0.8rem;
-  font-weight: 600;
+  height: 100%;
+  min-height: 46px;
+  border-radius: 14px;
+  background: var(--butter);
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #8a5f30;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.15em;
 }
 
-.picker__row {
+.tray__options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
 .chip {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 10px 4px 9px;
+  min-height: 50px;
+  padding: 6px 4px;
   border: 2.5px solid transparent;
   border-radius: var(--radius-md);
-  background: var(--cream);
+  background: #fff;
   font-family: var(--font-head);
   font-size: 0.92rem;
   color: var(--ink-soft);
   cursor: pointer;
+  box-shadow: 0 4px 0 #f0dfcb;
   transition:
-    transform 0.15s ease,
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
     border-color 0.15s ease,
     background 0.15s ease;
   touch-action: manipulation;
 }
 
-.chip:hover {
-  transform: translateY(-2px);
+.chip:active {
+  transform: translateY(3px) scale(0.96);
+  box-shadow: 0 1px 0 #f0dfcb;
 }
 
 .chip.is-active {
   border-color: var(--butter-deep);
-  background: #fff8e1;
+  background: #fff8df;
   color: var(--ink);
-  box-shadow: 0 4px 0 #f1d58a;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #efcf7c;
 }
 
-/* 미니 그릇 견본 (CSS로 그림) */
+/* 선택된 칩의 체크 표시 */
+.chip.is-active::after {
+  content: '✓';
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--butter-deep);
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b4320;
+  box-shadow: 0 2px 0 var(--butter-edge);
+}
+
+.chip__name {
+  white-space: nowrap;
+}
+
+/* 미니 그릇 견본 (CSS) */
 .chip__bowl {
   position: relative;
-  width: 40px;
-  height: 22px;
-  margin-top: 6px;
-  border-radius: 4px 4px 20px 20px;
-  background: var(--body);
+  flex: none;
+  width: 30px;
+  height: 17px;
+  margin-top: 5px;
+  border-radius: 3px 3px 16px 16px;
+  background: linear-gradient(90deg, var(--shade), var(--body) 40%, var(--shade));
 }
 
 .chip__bowl::before {
@@ -256,39 +401,27 @@
   position: absolute;
   left: -3px;
   right: -3px;
-  top: -6px;
-  height: 11px;
+  top: -5px;
+  height: 10px;
   border-radius: 50%;
   background: var(--rim);
-  box-shadow: inset 0 -4px 0 #b27848;
+  box-shadow: inset 0 -4px 0 #9a6234;
 }
 
-/* 토퍼 병 (CSS로 그림) */
-.jar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* 토퍼 칩: 선택하면 해당 파우더 색으로 테두리 */
+.chip--topper.is-active {
+  border-color: var(--powder);
 }
 
-.jar__lid {
-  width: 20px;
-  height: 7px;
-  border-radius: 4px 4px 2px 2px;
-  background: var(--ink-faint);
-}
-
-.jar__body {
+.jar-wrap {
+  display: grid;
+  place-items: center;
   width: 30px;
-  height: 28px;
-  border-radius: 8px 8px 11px 11px;
-  border: 2.5px solid rgba(255, 255, 255, 0.9);
-  background:
-    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.55) 0 2px, transparent 3px) 0 0 / 8px 8px,
-    linear-gradient(180deg, var(--powder), var(--powder-2));
-  box-shadow: 0 0 0 1.5px rgba(196, 140, 90, 0.2);
+  height: 36px;
+  flex: none;
 }
 
-.jar.is-shaking {
+.jar-wrap.is-shaking {
   animation: jar-shake 0.32s ease;
 }
 
@@ -301,30 +434,62 @@
   }
 }
 
-/* ── 하단 버튼 ── */
-.bapkku__actions {
+/* 실제 제품 이미지가 들어갈 때 */
+.jar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 임시 파우더 병 (CSS) */
+.jar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.jar__lid {
+  width: 18px;
+  height: 6px;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, #d9c4ad, var(--ink-faint));
+}
+
+.jar__body {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px 8px 10px 10px;
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.55) 0 1.5px, transparent 2.5px) 0 0 / 7px 7px,
+    linear-gradient(180deg, var(--powder), var(--powder-2));
+  box-shadow: 0 0 0 1.5px rgba(196, 140, 90, 0.22), 0 3px 4px rgba(150, 90, 40, 0.15);
+}
+
+/* 하단 버튼 */
+.tray__actions {
   display: grid;
-  grid-template-columns: 1fr 1.6fr;
+  grid-template-columns: 1fr 1.7fr;
   gap: 10px;
-  margin-top: auto;
-  padding-top: 4px;
+  margin-top: 4px;
 }
 
 /* ==========================================================
  * 완성 축하 화면
  * ========================================================== */
 .celebrate {
-  /* fixed: 화면을 스크롤한 상태에서도 항상 화면 가운데에 표시 */
+  /* .app-frame에 transform이 있어서 fixed가 프레임 기준으로 붙어요 */
   position: fixed;
   inset: 0;
   z-index: 20;
   display: grid;
   place-items: center;
-  padding: 20px;
-  background: rgba(255, 244, 214, 0.86);
+  padding: 34px 18px 18px;
+  background: rgba(255, 240, 214, 0.88);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  overflow-y: auto;
+  overflow-x: hidden; /* 회전하는 햇살이 가로 스크롤을 만들지 않게 */
+  overflow-y: auto; /* 세로가 아주 짧은 화면에서만 스크롤 */
   animation: fade-in 0.3s ease both;
 }
 
@@ -334,19 +499,43 @@
   }
 }
 
+/* 뒤에서 천천히 도는 햇살 */
+.celebrate__rays {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: 760px;
+  height: 760px;
+  margin: -380px 0 0 -380px;
+  background: repeating-conic-gradient(rgba(255, 214, 102, 0.32) 0 10deg, transparent 10deg 20deg);
+  mask-image: radial-gradient(circle, #000 20%, transparent 62%);
+  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 62%);
+  animation: spin 24s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
 .celebrate__card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  max-width: 360px;
-  padding: 26px 20px 22px;
+  max-width: 350px;
+  padding: 38px 18px 20px;
   border-radius: 34px;
-  background: #fff;
+  background: linear-gradient(180deg, #fffefa, #fff6e6);
   text-align: center;
-  box-shadow: 0 20px 50px rgba(196, 140, 90, 0.3);
+  box-shadow:
+    inset 0 3px 0 #fff,
+    0 8px 0 #f0d3a8,
+    0 24px 50px rgba(160, 100, 50, 0.3);
   animation: card-bounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
@@ -357,31 +546,98 @@
   }
 }
 
-.celebrate__title {
-  margin-top: 6px;
+/* 카드 위에 걸친 리본 제목 */
+.ribbon {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 9px 30px 11px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffc7ae, var(--peach-deep));
+  box-shadow: 0 5px 0 var(--peach-edge), 0 10px 18px rgba(233, 143, 108, 0.35);
   font-family: var(--font-head);
-  font-size: 2.1rem;
+  font-size: 1.75rem;
   font-weight: 400;
-  color: var(--ink);
-  text-shadow: 0 3px 0 var(--butter-deep);
-  animation: wiggle 1.6s ease-in-out 0.5s infinite;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 rgba(180, 90, 60, 0.45);
+  animation: wiggle 1.8s ease-in-out 0.8s infinite;
 }
 
 @keyframes wiggle {
   0%,
   100% {
-    transform: rotate(0);
+    rotate: 0deg;
   }
   25% {
-    transform: rotate(-3deg) scale(1.03);
+    rotate: -2.5deg;
   }
   75% {
-    transform: rotate(3deg) scale(1.03);
+    rotate: 2.5deg;
   }
 }
 
+/* 별 3개 */
+.celebrate__stars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.big-star {
+  font-size: 2.6rem;
+  line-height: 1;
+  color: #eadfce;
+  text-shadow: 0 3px 0 #dccbb5;
+}
+
+.big-star:nth-child(2) {
+  font-size: 3.3rem;
+  transform: translateY(-8px);
+}
+
+.big-star.is-on {
+  color: #ffc23a;
+  text-shadow:
+    0 3px 0 #e29214,
+    0 0 16px rgba(255, 194, 58, 0.6);
+  animation: big-star-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes big-star-pop {
+  from {
+    scale: 0;
+    opacity: 0;
+  }
+}
+
+.celebrate__grade {
+  font-family: var(--font-head);
+  font-size: 1.05rem;
+  color: var(--peach-edge);
+}
+
+/* 완성된 그릇 + 응원하는 캐릭터 */
+.celebrate__plate {
+  position: relative;
+  width: 100%;
+  max-width: 250px;
+}
+
+.celebrate__plate .bowl-svg {
+  height: auto;
+}
+
+.celebrate__cheer {
+  position: absolute;
+  right: -14px;
+  bottom: 6px;
+}
+
 .celebrate__desc {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   line-height: 1.55;
   color: var(--ink-soft);
   word-break: keep-all;
@@ -391,18 +647,12 @@
   color: var(--ink);
 }
 
-.celebrate__bowl {
-  width: 100%;
-  max-width: 250px;
-  padding: 4px 0;
-}
-
 .celebrate__actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 /* 흩날리는 색종이 */
@@ -435,12 +685,31 @@
   }
 }
 
-/* 아주 작은 화면(세로가 짧은 폰)에서 그릇 영역 조금 줄이기 */
+/* ── 세로가 짧은 화면(작은 폰) 보정 ── */
 @media (max-height: 700px) {
-  .bapkku__stage {
-    padding-top: 4px;
+  .bapkku {
+    gap: 6px;
   }
-  .bowl-svg {
-    max-width: 300px;
+  .hud__eyebrow {
+    display: none;
+  }
+  .chip {
+    min-height: 44px;
+  }
+  .btn {
+    min-height: 48px;
+  }
+  .tray {
+    gap: 6px;
+    padding-top: 10px;
+  }
+  .celebrate__plate {
+    max-width: 200px;
+  }
+  .big-star {
+    font-size: 2.1rem;
+  }
+  .big-star:nth-child(2) {
+    font-size: 2.6rem;
   }
 }

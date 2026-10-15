@@ -1,0 +1,270 @@
+/* ==========================================================
+ * main.css — 메인 화면 (타이틀 + 게임 카드)
+ * ========================================================== */
+
+.main-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ── 상단 히어로 ── */
+.hero {
+  text-align: center;
+  padding-top: 6px;
+}
+
+.hero__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 196px;
+  margin: 0 auto 14px;
+  border-radius: 0 0 50% 50% / 0 0 22% 22%;
+  /* 캐릭터 뒤의 둥근 버터색 무대 */
+  background:
+    radial-gradient(ellipse 70% 26% at 50% 88%, rgba(255, 180, 150, 0.35), transparent 70%),
+    radial-gradient(circle at 50% 46%, var(--butter) 0 34%, transparent 35%);
+}
+
+.hero__sparkle {
+  position: absolute;
+  color: var(--butter-deep);
+  font-size: 1.1rem;
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+.hero__sparkle--1 {
+  top: 26px;
+  left: 22%;
+}
+.hero__sparkle--2 {
+  top: 56px;
+  right: 20%;
+  color: var(--peach-deep);
+  animation-delay: 0.6s;
+}
+.hero__sparkle--3 {
+  bottom: 40px;
+  left: 18%;
+  font-size: 0.8rem;
+  animation-delay: 1.2s;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
+}
+
+.hero__title {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: clamp(2rem, 9vw, 2.5rem);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--ink);
+  /* 버터색 테두리 그림자로 말랑한 느낌 */
+  text-shadow:
+    0 3px 0 var(--butter-deep),
+    0 6px 14px rgba(233, 181, 68, 0.35);
+}
+
+.hero__subtitle {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: var(--peach);
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.12em;
+  color: #b9674a;
+}
+
+.hero__lead {
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+/* ── 게임 카드 2×2 ── */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.game-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 168px;
+  padding: 16px 14px 14px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    0 5px 0 var(--card-edge),
+    var(--shadow-card);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+  animation: card-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  touch-action: manipulation;
+}
+
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+}
+
+/* 카드 색 테마 */
+.game-card--peach {
+  background: linear-gradient(160deg, #ffe6d9, var(--peach));
+  --card-edge: #f3b89c;
+}
+.game-card--butter {
+  background: linear-gradient(160deg, #fff4cc, var(--butter));
+  --card-edge: #ecd08a;
+}
+.game-card--cream {
+  background: linear-gradient(160deg, #fffdf7, #fff0db);
+  --card-edge: #ecd9bd;
+}
+.game-card--mint {
+  background: linear-gradient(160deg, #e9f8f0, var(--mint));
+  --card-edge: #a9d8c3;
+}
+
+.game-card.is-playable:hover {
+  transform: translateY(-3px) rotate(-0.6deg);
+}
+
+.game-card:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 1px 0 var(--card-edge),
+    var(--shadow-card);
+}
+
+/* 플레이 가능한 카드는 살짝 반짝이는 테두리 */
+.game-card.is-playable::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--radius-lg) + 3px);
+  border: 2.5px solid #fff;
+  pointer-events: none;
+  animation: glow 2.2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.game-card.is-soon {
+  filter: saturate(0.75);
+}
+.game-card.is-soon .game-card__icon {
+  opacity: 0.65;
+}
+
+.game-card__icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 4px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 1.9rem;
+  box-shadow: inset 0 -3px 0 rgba(196, 140, 90, 0.12);
+}
+
+.game-card__title {
+  font-family: var(--font-head);
+  font-size: 1.12rem;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.game-card__desc {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+  word-break: keep-all;
+}
+
+.game-card__badge {
+  margin-top: auto;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+}
+
+.badge--play {
+  background: var(--ink);
+  color: var(--butter);
+}
+
+.badge--soon {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--ink-faint);
+}
+
+.main-footer {
+  margin-top: auto;
+  padding-top: 4px;
+  text-align: center;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+/* ── Coming Soon 안내 토스트 ── */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  z-index: 10;
+  max-width: calc(100% - 40px);
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+  transform: translateX(-50%);
+  animation: toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+}

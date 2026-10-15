@@ -1,0 +1,446 @@
+/* ==========================================================
+ * bapkku.css — 밥꾸 스튜디오 게임 화면
+ * ========================================================== */
+
+.bapkku {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background:
+    radial-gradient(ellipse 120% 50% at 50% 0%, var(--butter) 0%, transparent 60%),
+    var(--cream);
+}
+
+/* ── 상단 바 ── */
+.bapkku__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bapkku__heading {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.bapkku__eyebrow {
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.bapkku__title {
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+/* ── 안내 말풍선 ── */
+.bapkku__hint {
+  position: relative;
+  align-self: center;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+
+.bapkku__hint::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 2px;
+}
+
+/* ── 그릇 무대 ── */
+.bapkku__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 12px 6px 30px;
+}
+
+/* 그릇 아래 체크무늬 식탁 매트 */
+.stage__mat {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 12px;
+  height: 58%;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 180, 150, 0.22) 0 12px, transparent 12px 24px),
+    repeating-linear-gradient(-45deg, rgba(255, 180, 150, 0.22) 0 12px, transparent 12px 24px),
+    var(--peach);
+  opacity: 0.55;
+}
+
+.stage__count {
+  position: absolute;
+  right: 6px;
+  bottom: 2px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.stage__count b {
+  font-family: var(--font-title);
+  color: var(--ink);
+}
+
+/* SVG 그릇 */
+.bowl-svg {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bowl-svg.is-interactive {
+  cursor: crosshair;
+  /* 그릇 위에서 문질러도 화면이 스크롤되지 않게 */
+  touch-action: none;
+}
+
+.bowl-svg.is-interactive:focus-visible {
+  outline: none;
+}
+
+.bowl-svg.is-interactive:focus-visible .bowl-hit {
+  filter: drop-shadow(0 0 6px var(--peach-deep));
+}
+
+/* 파우더 알갱이: 위에서 톡 떨어지며 나타남 */
+.powder {
+  animation: powder-drop 0.55s cubic-bezier(0.3, 1.5, 0.55, 1) both;
+}
+
+@keyframes powder-drop {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--fall) * -1));
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 완성 화면의 그릇은 애니메이션 없이 바로 표시 */
+.bowl-svg.is-static .powder {
+  animation: none;
+}
+
+/* 톡! 가루 구름 */
+.puff {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: puff 0.6s ease-out both;
+  pointer-events: none;
+}
+
+@keyframes puff {
+  from {
+    opacity: 0.45;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+/* ── 선택 패널 ── */
+.bapkku__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 14px;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-soft);
+}
+
+.picker__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.picker__step {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--butter-deep);
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.picker__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px 9px;
+  border: 2.5px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--cream);
+  font-family: var(--font-head);
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+  touch-action: manipulation;
+}
+
+.chip:hover {
+  transform: translateY(-2px);
+}
+
+.chip.is-active {
+  border-color: var(--butter-deep);
+  background: #fff8e1;
+  color: var(--ink);
+  box-shadow: 0 4px 0 #f1d58a;
+}
+
+/* 미니 그릇 견본 (CSS로 그림) */
+.chip__bowl {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  margin-top: 6px;
+  border-radius: 4px 4px 20px 20px;
+  background: var(--body);
+}
+
+.chip__bowl::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  right: -3px;
+  top: -6px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--rim);
+  box-shadow: inset 0 -4px 0 #b27848;
+}
+
+/* 토퍼 병 (CSS로 그림) */
+.jar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.jar__lid {
+  width: 20px;
+  height: 7px;
+  border-radius: 4px 4px 2px 2px;
+  background: var(--ink-faint);
+}
+
+.jar__body {
+  width: 30px;
+  height: 28px;
+  border-radius: 8px 8px 11px 11px;
+  border: 2.5px solid rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.55) 0 2px, transparent 3px) 0 0 / 8px 8px,
+    linear-gradient(180deg, var(--powder), var(--powder-2));
+  box-shadow: 0 0 0 1.5px rgba(196, 140, 90, 0.2);
+}
+
+.jar.is-shaking {
+  animation: jar-shake 0.32s ease;
+}
+
+@keyframes jar-shake {
+  25% {
+    transform: rotate(-14deg) translateY(-2px);
+  }
+  60% {
+    transform: rotate(10deg);
+  }
+}
+
+/* ── 하단 버튼 ── */
+.bapkku__actions {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+/* ==========================================================
+ * 완성 축하 화면
+ * ========================================================== */
+.celebrate {
+  /* fixed: 화면을 스크롤한 상태에서도 항상 화면 가운데에 표시 */
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(255, 244, 214, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow-y: auto;
+  animation: fade-in 0.3s ease both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.celebrate__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  padding: 26px 20px 22px;
+  border-radius: 34px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(196, 140, 90, 0.3);
+  animation: card-bounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes card-bounce {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(20px);
+  }
+}
+
+.celebrate__title {
+  margin-top: 6px;
+  font-family: var(--font-head);
+  font-size: 2.1rem;
+  font-weight: 400;
+  color: var(--ink);
+  text-shadow: 0 3px 0 var(--butter-deep);
+  animation: wiggle 1.6s ease-in-out 0.5s infinite;
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-3deg) scale(1.03);
+  }
+  75% {
+    transform: rotate(3deg) scale(1.03);
+  }
+}
+
+.celebrate__desc {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  word-break: keep-all;
+}
+
+.celebrate__desc b {
+  color: var(--ink);
+}
+
+.celebrate__bowl {
+  width: 100%;
+  max-width: 250px;
+  padding: 4px 0;
+}
+
+.celebrate__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* 흩날리는 색종이 */
+.celebrate__confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.celebrate__confetti span {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  border-radius: 3px;
+  opacity: 0.9;
+  animation: confetti-fall linear infinite;
+}
+
+.celebrate__confetti span.is-round {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(110vh) rotate(540deg);
+  }
+}
+
+/* 아주 작은 화면(세로가 짧은 폰)에서 그릇 영역 조금 줄이기 */
+@media (max-height: 700px) {
+  .bapkku__stage {
+    padding-top: 4px;
+  }
+  .bowl-svg {
+    max-width: 300px;
+  }
+}

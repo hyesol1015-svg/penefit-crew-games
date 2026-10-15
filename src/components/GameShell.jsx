@@ -26,6 +26,7 @@ import '../styles/shell.css'
  *   onRestart      : 다시하기 (없으면 버튼이 숨겨짐)
  *   status         : 무대 위쪽에 보일 정보 (게이지, 점수 등)
  *   left, right    : 왼쪽/오른쪽 패널 내용,  leftTitle, rightTitle : 패널 제목
+ *   leftClassName, rightClassName : 패널에 추가할 CSS 클래스 (선택)
  *   actions        : 하단 버튼 영역 (완성, 초기화 등)
  *   overlay        : 완성 화면처럼 위에 덮이는 화면
  *   children       : 무대(stage) 안에 들어갈 게임 장면
@@ -39,8 +40,10 @@ function GameShell({
   status,
   left,
   leftTitle,
+  leftClassName = '',
   right,
   rightTitle,
+  rightClassName = '',
   actions,
   overlay,
   className = '',
@@ -95,13 +98,13 @@ function GameShell({
           {hasPanels && (
             <div className="shell__panels">
               {left && (
-                <section className="panel panel--left" aria-label={leftTitle}>
+                <section className={`panel panel--left ${leftClassName}`} aria-label={leftTitle}>
                   {leftTitle && <h2 className="panel__title">{leftTitle}</h2>}
                   <div className="panel__body">{left}</div>
                 </section>
               )}
               {right && (
-                <section className="panel panel--right" aria-label={rightTitle}>
+                <section className={`panel panel--right ${rightClassName}`} aria-label={rightTitle}>
                   {rightTitle && <h2 className="panel__title">{rightTitle}</h2>}
                   <div className="panel__body">{right}</div>
                 </section>

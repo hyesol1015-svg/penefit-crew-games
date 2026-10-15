@@ -1,10 +1,13 @@
-import { useId, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { FOOD_AREA } from './bapkkuData.js'
 
 /* ─────────────────────────────────────────────
- * 사료 알갱이(키블) 배치
- * 매번 무작위로 그리면 화면이 바뀔 때마다 모양이 달라지므로,
+ * 사료 알갱이(키블) 재료
+ * 매번 무작위로 만들면 화면이 바뀔 때마다 모양이 달라지므로,
  * '씨앗값(seed)'이 고정된 난수로 한 번만 만들어 둡니다.
+ *
+ * 위치는 '단위 원' 안의 좌표(u, v)로 저장해 두고,
+ * 사료 양(fill)에 따라 실제 그릇 안 좌표로 바꿔서 그립니다.
  * ───────────────────────────────────────────── */
 function seededRandom(seed) {
   let s = seed
@@ -14,7 +17,7 @@ function seededRandom(seed) {
   }
 }
 
-// 키블 색 4가지: [밝은색, 기본색, 어두운색] — 그라데이션으로 동글동글 입체감을 줍니다.
+// 키블 색 4가지: [밝은색, 기본색, 어두운색] — 그라데이션으로 동글동글 입체감
 const KIBBLE_TONES = [
   ['#F2C28C', '#D49A62', '#A16A36'],
   ['#E8B27A', '#C4854E', '#8D5A2C'],
@@ -23,20 +26,67 @@ const KIBBLE_TONES = [
 ]
 
 const rand = seededRandom(20261015)
-const KIBBLES = Array.from({ length: 175 }, () => {
+const KIBBLE_COUNT = 190
+const KIBBLES = Array.from({ length: KIBBLE_COUNT }, () => {
   const angle = rand() * Math.PI * 2
   const dist = Math.sqrt(rand())
   const big = rand() > 0.35
   return {
-    x: 160 + Math.cos(angle) * dist * 116,
-    y: 86 + Math.sin(angle) * dist * 36,
+    u: Math.cos(angle) * dist, // -1 ~ 1 (좌우)
+    v: Math.sin(angle) * dist, // -1 ~ 1 (앞뒤)
+    rank: rand(), // 사료가 적을 때는 rank가 낮은 알갱이만 보여요
     rx: big ? 5.4 + rand() * 1.8 : 4 + rand() * 1.4,
     ry: big ? 4 + rand() * 1.2 : 3.2 + rand(),
     rot: Math.round(rand() * 180),
     tone: Math.floor(rand() * KIBBLE_TONES.length),
     hole: rand() > 0.86, // 가운데가 살짝 파인 도넛형 키블
   }
-}).sort((a, b) => a.y - b.y) // 뒤쪽(위)부터 그려야 앞쪽 알갱이가 위에 겹쳐 보여요
+})
+
+// 스쿱에서 쏟아지는 알갱이 (떨어지는 연출용)
+const DROPS = Array.from({ length: 16 }, () => ({
+  dx: rand() * 2 - 1,
+  dy: rand() * 2 - 1,
+  delay: Math.round(rand() * 220),
+  tone: Math.floor(rand() * KIBBLE_TONES.length),
+  rot: Math.round(rand() * 180),
+}))
+
+/**
+ * 사료 양(f: 0~1)에 따른 사료 윗면 모양
+ *  - 적을 때: 그릇 깊은 곳에 작고 평평하게
+ *  - 가득일 때: 그릇 입구까지 차오르고 가운데가 소복하게 솟음
+ */
+function foodSurface(fill) {
+  const f = Math.min(Math.max(fill, 0), 1) // 혹시 범위를 벗어나도 0~1로 고정
+  const rx = 74 + 42 * f // 사료 윗면의 가로 반지름
+  return {
+    rx,
+    ry: rx * 0.276, // 그릇 입구와 같은 비율(위에서 비스듬히 본 시점)
+    cy: 114 - 22 * f, // 윗면 중심 높이 (작을수록 위)
+    dome: 36 * Math.pow(f, 1.4), // 가운데가 솟은 높이
+  }
+}
+
+// 사료 더미 외곽선 (위로 볼록한 곡선 + 그릇 입구를 따라가는 아래 곡선)
+function moundPath({ rx, ry, cy, dome }) {
+  const x0 = 160 - rx
+  const x1 = 160 + rx
+  const top = cy - Math.max(dome, ry * 0.9)
+  return [
+    `M${x0},${cy}`,
+    `C${x0 + 0.12 * rx},${cy - (cy - top) * 0.67} ${160 - 0.45 * rx},${top} 160,${top}`,
+    `C${160 + 0.45 * rx},${top} ${x1 - 0.12 * rx},${cy - (cy - top) * 0.67} ${x1},${cy}`,
+    `A${rx},${ry} 0 0 1 ${x0},${cy}`,
+    'Z',
+  ].join(' ')
+}
+
+// 단위 원 좌표(u, v) → 현재 사료 윗면 위의 실제 좌표
+function placeOnSurface(u, v, s) {
+  const lift = s.dome * Math.max(0, 1 - u * u - v * v)
+  return { x: 160 + u * (s.rx - 4), y: s.cy + v * s.ry * 0.95 - lift }
+}
 
 // 그릇 몸통의 물방울 무늬 위치
 const BODY_DOTS = [
@@ -44,15 +94,9 @@ const BODY_DOTS = [
   [104, 168], [142, 178], [178, 178], [216, 168],
 ]
 
-// 사료가 소복하게 쌓인 '언덕' 모양 (그릇 입구 아래쪽 곡선 + 위로 볼록한 곡선)
-const MOUND_PATH = 'M44,92 C58,68 108,56 160,56 C212,56 262,68 276,92 A116,32 0 0 1 44,92 Z'
-
 /**
  * 누른 지점이 '그릇 영역'인지 판정 (SVG 좌표 기준)
- * - 테두리 타원(cx160, cy92, rx132, ry40)보다 조금 넉넉한 범위
- * - 또는 테두리 아래의 몸통 영역
- * 사료 바로 위의 빈 공간이나 테두리를 살짝 빗나가게 눌러도 뿌려지도록
- * 판정을 넓게 잡고, 실제 알갱이는 clampIntoFood로 사료 위에만 놓입니다.
+ * 테두리 타원보다 조금 넉넉한 범위 또는 테두리 아래 몸통 영역
  */
 function isInsideBowl(x, y) {
   const nx = (x - 160) / (132 * 1.15)
@@ -63,30 +107,69 @@ function isInsideBowl(x, y) {
 }
 
 /**
- * Bowl — 사료가 담긴 그릇 (SVG)
+ * Bowl — 사료 그릇 (SVG)
  *
  * props
  *   bowl        : BOWLS 중 하나 (색상 정보)
- *   particles   : 뿌려진 파우더 알갱이 배열
- *   puffs       : 톡! 할 때 생기는 작은 가루 구름
- *   onSprinkle  : (x, y) => void  — SVG 좌표로 뿌릴 위치를 알려 줌
+ *   fill        : 사료 양 0(빈 그릇) ~ 1(가득). 바뀌면 부드럽게 차오름
+ *   pourId      : 값이 바뀔 때마다 스쿱에서 사료가 쏟아지는 연출
+ *   particles   : 뿌려진 파우더 알갱이,  puffs : 톡! 가루 구름
+ *   onSprinkle  : (x, y) => void  — 그릇을 누르거나 문지른 SVG 좌표를 알려 줌
  *   interactive : false면 완성 화면처럼 보기 전용
+ *   label       : 화면 읽기 프로그램용 설명
  *
- * [클릭 처리 구조]
- * 클릭(터치)은 바깥 <svg>가 직접 받습니다.
- * 예전에는 안쪽 <g>에만 이벤트를 달아서, 그림이 없는 투명한 부분
- * (테두리 바로 위 등)을 누르면 이벤트가 <svg>로 가 버려 아무 일도
- * 일어나지 않았어요. 지금은 좌표로 '그릇 영역인지'를 판정합니다.
- * 마우스와 터치를 모두 지원하기 위해 Pointer Events를 사용하고,
- * 누른 채로 문지르면 연속해서 뿌려져요.
+ * 클릭(터치)은 바깥 <svg>가 직접 받아 좌표로 '그릇 영역인지' 판정합니다.
+ * 마우스와 터치를 모두 지원하기 위해 Pointer Events를 사용합니다.
  */
-function Bowl({ bowl, particles = [], puffs = [], onSprinkle, interactive = true }) {
+function Bowl({
+  bowl,
+  fill = 1,
+  pourId = null,
+  particles = [],
+  puffs = [],
+  onSprinkle,
+  interactive = true,
+  label,
+}) {
   const svgRef = useRef(null)
   const isDrawing = useRef(false)
   const lastPoint = useRef(null)
   // 한 화면에 그릇이 2개 있어도 SVG 안의 id가 겹치지 않도록 고유 접두어 사용
   const uid = `b${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const ref = (name) => `url(#${uid}-${name})`
+
+  /* ── 사료가 부드럽게 차오르는 애니메이션 ──
+     fill 값이 바뀌면 0.5초 동안 화면 속 사료 양(shownFill)을 조금씩 따라가게 합니다. */
+  const [shownFill, setShownFill] = useState(fill)
+  const shownRef = useRef(fill)
+  useEffect(() => {
+    const from = shownRef.current
+    if (from === fill) return
+    const start = performance.now()
+    let frame
+    const tick = (now) => {
+      // 첫 프레임의 시각이 시작 시각보다 살짝 이를 수 있어 0~1 범위로 고정
+      const t = Math.min(Math.max((now - start) / 500, 0), 1)
+      const eased = 1 - Math.pow(1 - t, 3)
+      const value = from + (fill - from) * eased
+      shownRef.current = value
+      setShownFill(value)
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [fill])
+
+  const surface = foodSurface(shownFill)
+  const hasFood = shownFill > 0.01
+  const visibleKibbles = hasFood
+    ? KIBBLES.filter((k) => k.rank < 0.35 + 0.65 * shownFill)
+        .map((k) => ({ ...k, ...placeOnSurface(k.u, k.v, surface) }))
+        .sort((a, b) => a.y - b.y) // 뒤쪽(위)부터 그려야 앞쪽 알갱이가 위에 겹쳐 보여요
+    : []
+
+  // 떨어지는 알갱이가 내려앉을 위치 (목표 사료 양 기준)
+  const landing = foodSurface(Math.max(fill, 0.25))
 
   // 화면(px) 좌표 → SVG viewBox 좌표로 변환
   const toSvgPoint = (event) => {
@@ -97,9 +180,9 @@ function Bowl({ bowl, particles = [], puffs = [], onSprinkle, interactive = true
     return { x: p.x, y: p.y }
   }
 
-  // 그릇을 눌렀을 때: 바로 한 번 뿌리고 '문지르기' 모드 시작
+  // 그릇을 눌렀을 때: 바로 한 번 알리고 '문지르기' 모드 시작
   const handlePointerDown = (event) => {
-    if (!interactive) return
+    if (!interactive || !onSprinkle) return
     const point = toSvgPoint(event)
     // 그릇 바깥의 빈 공간을 누른 경우는 무시
     if (!point || !isInsideBowl(point.x, point.y)) return
@@ -107,10 +190,10 @@ function Bowl({ bowl, particles = [], puffs = [], onSprinkle, interactive = true
     isDrawing.current = true
     svgRef.current?.setPointerCapture?.(event.pointerId)
     lastPoint.current = point
-    onSprinkle?.(point.x, point.y)
+    onSprinkle(point.x, point.y)
   }
 
-  // 누른 채로 움직이면 일정 거리마다 한 번씩 뿌리기
+  // 누른 채로 움직이면 일정 거리마다 한 번씩 알리기
   const handlePointerMove = (event) => {
     if (!isDrawing.current) return
     const point = toSvgPoint(event)
@@ -127,33 +210,31 @@ function Bowl({ bowl, particles = [], puffs = [], onSprinkle, interactive = true
     lastPoint.current = null
   }
 
-  // 키보드 사용자: Enter/스페이스로 사료 위 무작위 위치에 뿌리기
+  // 키보드 사용자: Enter/스페이스로 사료 위 무작위 위치에 알리기
   const handleKeyDown = (event) => {
-    if (!interactive) return
+    if (!interactive || !onSprinkle) return
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
       const angle = Math.random() * Math.PI * 2
       const d = Math.random() * 0.8
-      onSprinkle?.(
+      onSprinkle(
         FOOD_AREA.cx + Math.cos(angle) * d * FOOD_AREA.rx,
         FOOD_AREA.cy + Math.sin(angle) * d * FOOD_AREA.ry,
       )
     }
   }
 
+  const canPress = interactive && Boolean(onSprinkle)
+
   return (
     <svg
       ref={svgRef}
-      className={`bowl-svg ${interactive ? 'is-interactive' : 'is-static'}`}
+      className={`bowl-svg ${interactive ? 'is-interactive' : 'is-static'} ${canPress ? 'can-press' : ''}`}
       viewBox="0 0 320 240"
       preserveAspectRatio="xMidYMax meet"
-      role={interactive ? 'button' : 'img'}
-      tabIndex={interactive ? 0 : -1}
-      aria-label={
-        interactive
-          ? `${bowl.name} 사료 그릇. 눌러서 토퍼를 뿌리세요`
-          : `${bowl.name} 그릇에 완성된 밥꾸`
-      }
+      role={canPress ? 'button' : 'img'}
+      tabIndex={canPress ? 0 : -1}
+      aria-label={label ?? `${bowl.name} 사료 그릇`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={stopDrawing}
@@ -182,8 +263,13 @@ function Bowl({ bowl, particles = [], puffs = [], onSprinkle, interactive = true
         {/* 그릇 안쪽 벽: 깊을수록 어둡게 */}
         <linearGradient id={`${uid}-inner`} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stopColor={bowl.innerShade} />
-          <stop offset="0.6" stopColor={bowl.inner} />
+          <stop offset="0.75" stopColor={bowl.inner} />
         </linearGradient>
+        {/* 빈 그릇 바닥 */}
+        <radialGradient id={`${uid}-floor`} cx="0.5" cy="0.4" r="0.6">
+          <stop offset="0" stopColor={bowl.inner} />
+          <stop offset="1" stopColor={bowl.innerShade} />
+        </radialGradient>
         {/* 사료 더미: 위쪽 가운데가 밝고 가장자리가 어둡게 */}
         <radialGradient id={`${uid}-food`} cx="0.45" cy="0.25" r="0.85">
           <stop offset="0" stopColor="#D49A62" />
@@ -207,9 +293,14 @@ function Bowl({ bowl, particles = [], puffs = [], onSprinkle, interactive = true
           <rect width="8" height="16" fill="#FFC9B0" opacity="0.7" />
           <rect width="16" height="8" fill="#FFC9B0" opacity="0.7" />
         </pattern>
-        {/* 사료 더미 모양으로 잘라서 키블·파우더가 그릇 밖으로 나가지 않게 */}
+        {/* 그릇 안쪽(입구 타원 + 입구 위 공간)으로 잘라서 사료가 그릇 밖으로 안 나가게 */}
+        <clipPath id={`${uid}-inside`}>
+          <ellipse cx="160" cy="92" rx="116" ry="32" />
+          <rect x="44" y="0" width="232" height="92" />
+        </clipPath>
+        {/* 사료 더미 모양으로 잘라서 키블·파우더가 더미 밖으로 안 나가게 */}
         <clipPath id={`${uid}-mound`}>
-          <path d={MOUND_PATH} />
+          <path d={moundPath(surface)} />
         </clipPath>
       </defs>
 
@@ -256,45 +347,90 @@ function Bowl({ bowl, particles = [], puffs = [], onSprinkle, interactive = true
         {/* 그릇 안쪽 */}
         <ellipse cx="160" cy="92" rx="116" ry="32" fill={ref('inner')} />
 
-        {/* 사료 더미 */}
-        <path d={MOUND_PATH} fill={ref('food')} />
-        <g clipPath={ref('mound')}>
-          {KIBBLES.map((k, i) => (
-            <g key={i} transform={`rotate(${k.rot} ${k.x} ${k.y})`}>
-              {/* 알갱이 그림자 → 알갱이 → 하이라이트 순서로 겹쳐 입체감 */}
-              <ellipse cx={k.x + 1} cy={k.y + 1.8} rx={k.rx} ry={k.ry} fill="#4a2a10" opacity="0.26" />
-              <ellipse cx={k.x} cy={k.y} rx={k.rx} ry={k.ry} fill={ref(`kib${k.tone}`)} />
-              {k.hole ? (
-                <ellipse cx={k.x} cy={k.y} rx={k.rx * 0.32} ry={k.ry * 0.32} fill="#6b411f" opacity="0.7" />
-              ) : (
-                <ellipse
-                  cx={k.x - k.rx * 0.32}
-                  cy={k.y - k.ry * 0.38}
-                  rx={k.rx * 0.38}
-                  ry={k.ry * 0.28}
-                  fill="#FFFFFF"
-                  opacity="0.38"
+        <g clipPath={ref('inside')}>
+          {/* 빈 그릇 바닥 (사료가 차면 가려져요) */}
+          <ellipse cx="160" cy="118" rx="74" ry="20" fill={ref('floor')} />
+          <ellipse cx="146" cy="113" rx="34" ry="6" fill="#FFFFFF" opacity="0.18" />
+
+          {/* 사료 더미 */}
+          {hasFood && (
+            <g className="food">
+              <path d={moundPath(surface)} fill={ref('food')} />
+              <g clipPath={ref('mound')}>
+                {visibleKibbles.map((k, i) => (
+                  <g key={i} transform={`rotate(${k.rot} ${k.x} ${k.y})`}>
+                    {/* 알갱이 그림자 → 알갱이 → 하이라이트 순서로 겹쳐 입체감 */}
+                    <ellipse cx={k.x + 1} cy={k.y + 1.8} rx={k.rx} ry={k.ry} fill="#4a2a10" opacity="0.26" />
+                    <ellipse cx={k.x} cy={k.y} rx={k.rx} ry={k.ry} fill={ref(`kib${k.tone}`)} />
+                    {k.hole ? (
+                      <ellipse cx={k.x} cy={k.y} rx={k.rx * 0.32} ry={k.ry * 0.32} fill="#6b411f" opacity="0.7" />
+                    ) : (
+                      <ellipse
+                        cx={k.x - k.rx * 0.32}
+                        cy={k.y - k.ry * 0.38}
+                        rx={k.rx * 0.38}
+                        ry={k.ry * 0.28}
+                        fill="#FFFFFF"
+                        opacity="0.38"
+                      />
+                    )}
+                  </g>
+                ))}
+
+                {/* 앞쪽 그릇 테두리 아래로 드리운 그늘 */}
+                <path
+                  d={`M${160 - surface.rx},${surface.cy} A${surface.rx},${surface.ry} 0 0 0 ${160 + surface.rx},${surface.cy}`}
+                  fill="none"
+                  stroke="#2e1606"
+                  strokeOpacity="0.22"
+                  strokeWidth="10"
                 />
-              )}
-            </g>
-          ))}
+                {/* 사료 윗면 하이라이트 */}
+                <ellipse
+                  cx="146"
+                  cy={surface.cy - surface.dome * 0.6 - 4}
+                  rx={surface.rx * 0.53}
+                  ry="9"
+                  fill="#FFF3DC"
+                  opacity="0.14"
+                />
 
-          {/* 앞쪽 그릇 테두리 아래로 드리운 그늘 */}
-          <path d="M44,92 A116,32 0 0 0 276,92" fill="none" stroke="#2e1606" strokeOpacity="0.22" strokeWidth="10" />
-          {/* 사료 윗면 하이라이트 */}
-          <ellipse cx="146" cy="72" rx="62" ry="9" fill="#FFF3DC" opacity="0.14" />
-
-          {/* 뿌려진 파우더 알갱이 */}
-          {particles.map((p) => (
-            <g
-              key={p.id}
-              className="powder"
-              style={{ '--fall': `${p.fall}px`, animationDelay: `${p.delay}ms` }}
-            >
-              <circle cx={p.x} cy={p.y} r={p.r} fill={p.color} />
+                {/* 뿌려진 파우더 알갱이 */}
+                {particles.map((p) => (
+                  <g
+                    key={p.id}
+                    className="powder"
+                    style={{ '--fall': `${p.fall}px`, animationDelay: `${p.delay}ms` }}
+                  >
+                    <circle cx={p.x} cy={p.y} r={p.r} fill={p.color} />
+                  </g>
+                ))}
+              </g>
             </g>
-          ))}
+          )}
         </g>
+
+        {/* 스쿱에서 쏟아지는 사료 알갱이 */}
+        {pourId !== null && (
+          <g key={pourId} className="drops" aria-hidden="true">
+            {DROPS.map((d, i) => {
+              const x = 160 + d.dx * landing.rx * 0.45
+              const y = landing.cy - landing.dome * 0.7 + d.dy * landing.ry * 0.4
+              return (
+                <g key={i} className="drop" style={{ animationDelay: `${d.delay}ms` }}>
+                  <ellipse
+                    cx={x}
+                    cy={y}
+                    rx="5.6"
+                    ry="4.2"
+                    fill={ref(`kib${d.tone}`)}
+                    transform={`rotate(${d.rot} ${x} ${y})`}
+                  />
+                </g>
+              )
+            })}
+          </g>
+        )}
 
         {/* 톡! 할 때 퍼지는 가루 구름 */}
         {puffs.map((puff) => (

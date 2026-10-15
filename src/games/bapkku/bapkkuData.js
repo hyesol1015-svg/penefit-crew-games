@@ -48,7 +48,47 @@ export const BOWLS = [
     innerShade: '#6CAA8F',
     dot: '#F3FBF7',
   },
+  {
+    id: 'lavender',
+    name: '라벤더',
+    rim: '#F7F2FF',
+    rimShade: '#D8CBF1',
+    body: '#D6C8F0',
+    bodyLight: '#EEE7FF',
+    bodyShade: '#AE9CD6',
+    inner: '#C7B6E8',
+    innerShade: '#9A86C6',
+    dot: '#FBF9FF',
+  },
+  {
+    id: 'butter',
+    name: '버터 옐로우',
+    rim: '#FFF9DE',
+    rimShade: '#F4DA8E',
+    body: '#FFDF8C',
+    bodyLight: '#FFF0BF',
+    bodyShade: '#E3B655',
+    inner: '#F2CF7C',
+    innerShade: '#CFA34B',
+    dot: '#FFFDF3',
+  },
 ]
+
+/* ─────────────────────────────────────────────
+ * 게임 진행 단계
+ *   그릇 선택 → 사료 담기 → 파우더 뿌리기 → 토핑 꾸미기 → 완성
+ *   tip: 노트북 화면 왼쪽 '레시피 카드'에 보이는 설명
+ * ───────────────────────────────────────────── */
+export const STEPS = [
+  { id: 'bowl', label: '그릇', tip: '마음에 드는 그릇을 골라요. 고른 그릇이 바로 조리대에 놓여요.' },
+  { id: 'food', label: '사료', tip: '스쿱을 그릇으로 끌어다 놓거나 톡 눌러서 사료를 가득 담아요.' },
+  { id: 'powder', label: '파우더', tip: '토퍼 파우더를 고르고 그릇 위를 문질러 솔솔 뿌려요.' },
+  { id: 'topping', label: '토핑', tip: '원하는 토핑을 올려 꾸며요.' },
+  { id: 'done', label: '완성', tip: '완성된 밥꾸를 확인해요!' },
+]
+
+// 그릇을 가득 채우는 데 필요한 스쿱 수
+export const SCOOPS_TO_FILL = 4
 
 /* ─────────────────────────────────────────────
  * 2. 토퍼 파우더 3종

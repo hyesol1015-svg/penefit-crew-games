@@ -539,3 +539,446 @@
     transform: scale(1.15);
   }
 }
+
+/* ==========================================================
+ * 단계 진행 표시 (StepBar)
+ *   ① 그릇 ─ ② 사료 ─ ③ 파우더 ─ ④ 토핑 ─ ⑤ 완성
+ * ========================================================== */
+.stepbar {
+  width: min(100%, 560px);
+  margin: 0 auto;
+}
+
+.stepbar__list {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 단계 사이를 잇는 선 */
+.stepbar__list::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 15px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 2px rgba(150, 100, 60, 0.15);
+}
+
+.stepbar__item {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.stepbar__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.stepbar__btn:disabled {
+  cursor: default;
+}
+
+.stepbar__dot {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-faint);
+  box-shadow: 0 3px 0 #ecd2b6;
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.2s ease;
+}
+
+.stepbar__label {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  font-family: var(--font-head);
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.stepbar__item.is-current .stepbar__dot {
+  background: linear-gradient(180deg, #ffe58c, var(--butter-deep));
+  color: #6b4320;
+  box-shadow: 0 3px 0 var(--butter-edge), 0 0 0 4px rgba(255, 214, 102, 0.35);
+  transform: scale(1.15);
+}
+
+.stepbar__item.is-current .stepbar__label {
+  background: var(--ink);
+  color: var(--butter);
+}
+
+.stepbar__item.is-done .stepbar__dot {
+  background: linear-gradient(180deg, #c9f0dc, #9fdcbf);
+  color: #2f7a57;
+  box-shadow: 0 3px 0 #7cc3a1;
+}
+
+.stepbar__item.is-open .stepbar__dot {
+  color: var(--ink-soft);
+}
+
+.stepbar__item.is-locked {
+  opacity: 0.55;
+}
+
+.stepbar__btn:not(:disabled):hover .stepbar__dot {
+  transform: translateY(-2px);
+}
+
+.bapkku .shell__status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ==========================================================
+ * 그릇 놓이는 연출
+ * ========================================================== */
+.bowl-holder {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* 새 그릇이 '퐁' 하고 놓여요 */
+.bowl-pop {
+  animation: bowl-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: 50% 90%;
+}
+
+@keyframes bowl-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.86);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04, 0.96);
+  }
+}
+
+/* 아직 그릇을 고르기 전: 흐릿한 미리보기 */
+.bowl-ghost {
+  opacity: 0.38;
+  filter: grayscale(0.7);
+}
+
+/* ==========================================================
+ * 사료 스쿱 + 쏟아지는 사료
+ * ========================================================== */
+.scoop-home {
+  position: absolute;
+  top: 2%;
+  right: 0;
+  z-index: 3;
+  width: clamp(96px, 26%, 180px);
+  aspect-ratio: 7 / 5;
+  cursor: grab;
+  touch-action: none;
+}
+
+.scoop-home.is-disabled {
+  cursor: default;
+}
+
+/* 붓는 동안에는 스쿱이 그릇을 가려도 그릇 클릭을 막지 않게 */
+.scoop--pour {
+  pointer-events: none;
+}
+
+.scoop {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  filter: drop-shadow(0 8px 8px rgba(150, 90, 40, 0.25));
+  /* 날아가고 돌아올 때 통통 튀는 움직임 */
+  transition: transform 0.38s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+
+.scoop--drag {
+  cursor: grabbing;
+  transition: none;
+  filter: drop-shadow(0 16px 12px rgba(150, 90, 40, 0.3));
+}
+
+.scoop.is-disabled {
+  cursor: default;
+  opacity: 0.6;
+  filter: grayscale(0.3) drop-shadow(0 6px 6px rgba(150, 90, 40, 0.18));
+}
+
+.scoop:focus-visible {
+  outline: none;
+}
+
+.scoop:focus-visible .scoop__svg {
+  filter: drop-shadow(0 0 6px var(--peach-deep));
+}
+
+.scoop__svg,
+.scoop__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* 기다리는 동안 '나를 끌어 줘!' 하고 살랑 */
+.scoop--idle:not(.is-disabled) .scoop__svg,
+.scoop--idle:not(.is-disabled) .scoop__img {
+  animation: scoop-wiggle 2.4s ease-in-out infinite;
+  transform-origin: 32% 56%;
+}
+
+@keyframes scoop-wiggle {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0deg);
+  }
+  78% {
+    transform: rotate(-7deg);
+  }
+  88% {
+    transform: rotate(4deg);
+  }
+}
+
+/* 스쿱에서 사료 알갱이가 떨어져 그릇에 쌓임 */
+.drop {
+  animation: drop-fall 0.62s cubic-bezier(0.45, 0, 0.8, 0.5) both;
+}
+
+@keyframes drop-fall {
+  from {
+    opacity: 0;
+    transform: translate(18px, -120px);
+  }
+  15% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+/* 사료가 차오를 때 살짝 출렁 */
+.bapkku--food .food {
+  transform-box: fill-box;
+}
+
+/* ==========================================================
+ * 단계별 패널 내용
+ * ========================================================== */
+.food-panel,
+.powder-panel,
+.coming-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.food-panel__meter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.food-panel__dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 2px 3px rgba(150, 100, 60, 0.2);
+  transition: background 0.3s ease;
+}
+
+.food-panel__dot.is-filled {
+  background: radial-gradient(circle at 35% 30%, #f2c28c, #c4854e 60%, #8d5a2c);
+  box-shadow: 0 2px 0 #8d5a2c;
+  animation: star-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.food-panel__text {
+  margin-left: 4px;
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.food-panel__btn {
+  min-height: 52px;
+  font-size: 1rem;
+}
+
+.food-panel__btn:disabled {
+  cursor: default;
+  color: #2f7a57;
+  background: #ecfaf2;
+}
+
+.panel-help {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  word-break: keep-all;
+}
+
+.coming-panel p {
+  font-size: 0.92rem;
+  color: var(--ink);
+  word-break: keep-all;
+}
+
+.text-btn {
+  align-self: flex-end;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.text-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 노트북 왼쪽 '오늘의 레시피' 카드 — 작은 화면에서는 숨김 */
+.panel--recipe {
+  display: none !important;
+}
+
+@media (min-width: 1280px) {
+  .panel--recipe {
+    display: flex !important;
+  }
+}
+
+.recipe {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recipe__step {
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: var(--peach-edge);
+}
+
+.recipe__tip {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink);
+  word-break: keep-all;
+}
+
+.recipe__list {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recipe__list li {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff;
+  font-family: var(--font-head);
+  color: var(--ink-faint);
+}
+
+.recipe__list li.is-done {
+  color: #2f7a57;
+}
+
+.recipe__list li.is-current {
+  background: var(--butter);
+  color: #6b4320;
+}
+
+/* 다음 단계로 갈 준비가 되면 '다음' 버튼이 반짝이며 안내 */
+.bapkku .btn--primary.is-ready {
+  animation:
+    jelly-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    ready-glow 1.8s ease-in-out 0.6s infinite;
+}
+
+@keyframes ready-glow {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 -4px 0 rgba(214, 150, 40, 0.35),
+      0 6px 0 var(--butter-edge),
+      0 12px 22px rgba(232, 176, 63, 0.35);
+  }
+  50% {
+    box-shadow:
+      inset 0 -4px 0 rgba(214, 150, 40, 0.35),
+      0 6px 0 var(--butter-edge),
+      0 0 0 6px rgba(255, 214, 102, 0.45),
+      0 12px 26px rgba(232, 176, 63, 0.5);
+  }
+}
+
+/* 세로가 낮은 화면: 단계 표시 압축 */
+@media (max-height: 560px) {
+  .stepbar__dot {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+  .stepbar__list::before {
+    top: 12px;
+  }
+  .stepbar__label {
+    font-size: 0.66rem;
+  }
+}
+
+/* 아이패드 세로: 레시피 카드가 숨겨지므로 단계 패널이 한 줄 전체를 사용 */
+@media (min-width: 768px) and (orientation: portrait) {
+  .bapkku .panel--right {
+    grid-column: 1 / -1;
+  }
+}

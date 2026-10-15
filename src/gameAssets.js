@@ -28,6 +28,12 @@ export const ASSETS = {
     jelly: null,
   },
 
+  // 조리 도구 이미지 (투명 PNG)
+  // scoop: 사료 스쿱. 가로형(약 7:5 비율), 왼쪽에 컵·오른쪽에 손잡이가 오도록
+  tools: {
+    scoop: null,
+  },
+
   // 토퍼 파우더 제품 이미지 (정사각형 투명 PNG)
   // 넣으면 CSS로 그린 임시 병 대신 실제 제품 사진이 보입니다.
   toppers: {

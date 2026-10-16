@@ -4,7 +4,7 @@
 React + Vite + 순수 CSS/SVG로 만들었고, 유료 API·AI API·외부 데이터베이스를 쓰지 않습니다.
 추가로 설치한 패키지도 없습니다.
 
-현재 플레이 가능한 게임: **밥꾸 스튜디오** (사료 그릇에 토퍼 파우더를 뿌리고 고기 토핑 올리기), **쿠키 베이커리** (맛 고르기 → 섞기 → 밀기 → 찍기까지)
+현재 플레이 가능한 게임: **밥꾸 스튜디오** (사료 그릇에 토퍼 파우더를 뿌리고 고기 토핑 올리기), **쿠키 베이커리** (맛 → 섞기 → 밀기 → 찍기 → 굽기 → 꾸미기 → 완성 + 바우처)
 
 ---
 
@@ -87,12 +87,16 @@ src/
 │  │  ├─ BapkkuStudio.jsx
 │  │  ├─ Bowl.jsx
 │  │  └─ bapkkuData.js
-│  ├─ cookie/                    # 쿠키 베이커리 (① 맛 ~ ④ 찍기까지 플레이 가능)
+│  ├─ cookie/                    # 쿠키 베이커리 (① 맛 ~ ⑦ 완성까지 플레이 가능)
 │  │  ├─ CookieBakery.jsx        #   단계 진행·패널·버튼
 │  │  ├─ cookieData.js           #   단계, 맛(밥꾸 파우더 6종 재사용), 쿠키틀 5종, 섞기·밀기 기준
 │  │  ├─ MixStage.jsx            #   믹싱볼 (맛 고르기·섞기)
 │  │  ├─ RollStage.jsx           #   베이킹 매트 + 밀대
 │  │  ├─ CutStage.jsx            #   쿠키틀 찍기
+│  │  ├─ BakeStage.jsx           #   오븐 (굽기 타이밍 게임)
+│  │  ├─ DecorateStage.jsx       #   구운 쿠키 꾸미기
+│  │  ├─ DecorArt.jsx            #   장식 4종 그림 + 장식된 쿠키
+│  │  ├─ CookieFinish.jsx        #   완성 화면 (접시 + 크루 + 바우처)
 │  │  ├─ CookieArt.jsx           #   매트·반죽·쿠키·쿠키틀·트레이 그림 (임시 SVG)
 │  │  └─ doughShape.js           #   반죽 모양 계산
 │  ├─ cafe/MungpuccinoCafe.jsx    # 멍푸치노 카페 (화면 틀만 연결, 다음 단계에서 구현)
@@ -244,7 +248,9 @@ src/
 2. **Mix Dough** — 믹싱볼 안에서 손가락/마우스로 **원을 그리며** 저어요. 같은 방향으로 약 3바퀴(`MIX_TURNS`)면 완성 — 1바퀴 1초 기준 약 3초. 톡톡 누르기만 해서는 섞이지 않아요.
 3. **Roll Dough** — 밀대를 **위아래로** 끌어 반죽 위를 지나가게 해요. 한 방향으로 한 번 지나가면 1번, **4번**(`ROLL_PASSES`)이면 납작해져요. 매트 아무 곳을 끌어도 밀대가 따라와요.
 4. **Cut Shapes** — 쿠키틀(Dog·Cat·Paw·Heart·Star)을 고르고 반죽을 누르면 꾹 찍혀요. 너무 겹치면 가까운 빈자리로 옮기거나 "No room there!"라고 알려 줘요. 찍은 쿠키는 아래 **베이킹 트레이**에 모여요. 1개만 찍어도 다음으로 갈 수 있고 최대 10개. **Undo / Clear All** 가능.
-5. **Ready to Bake** — 굽기 '준비' 화면이에요. Bake · Decorate · Finish 는 **Coming soon**(다음 작업)으로만 표시돼요.
+5. **Bake Cookies** — **Bake!**를 누르면 트레이가 오븐 안으로 들어가고 타이머·게이지가 올라가요. 게이지 표시가 초록 **Perfect** 구간(약 3.5~5.5초)에 있을 때 **Stop!**(또는 오븐 누르기). 너무 빨리/늦게 멈추면 **Try Again**. (`BAKE` — 전체 7초, Perfect 0.5~0.78) 구워도 원래 맛 색은 남아요(노릇한 색 최대 38%).
+6. **Decorate** — 장식(Paw Print · Heart · Star · Dots)과 아이싱 색(맛 파스텔 · Cream · Pink · Butter)을 고르고 쿠키를 누르면 그 자리에 올라가요. 장식은 쿠키 모양 안쪽에만 놓이고, 쿠키마다 다르게 꾸밀 수 있어요(쿠키당 최대 8개). **Undo / Clear Decorations**. 1개 이상이면 **Finish!**
+7. **Finish** — "Cookies Complete!" + "You baked something pawsome!" 접시에 직접 만든 쿠키(모양·색·장식)가 그대로 담기고, 고른 크루가 축하해요. 아래에 밥꾸와 **같은 바우처 카드**(`bapkku/VoucherCard.jsx`, 설정 `bapkku/voucher.js`)가 나와요. **Start Over / Home**.
 
 그림은 모두 임시 SVG예요. 쿠키 PNG가 생기면 `cookieData.js`의 `CUTTERS` 각 항목 `image`에 경로를 넣으면 돼요.
 

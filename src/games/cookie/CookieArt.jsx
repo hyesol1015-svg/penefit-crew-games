@@ -139,8 +139,13 @@ export function CookieShape({ cutterId, flavor, variant = 'raw' }) {
     <g>
       <path d={cutter.path} fill="#7a4a2a" opacity="0.2" transform="translate(1.5 4)" />
       <path d={cutter.path} fill={flavor.doughSide} transform="translate(0 2.6)" />
-      <path d={cutter.path} fill={flavor.dough} />
+      <path className="cookie-body" d={cutter.path} fill={flavor.dough} />
+      {/* 구운 쿠키: 가장자리가 노릇하게 + 윗면 은은한 광택 */}
+      {flavor.edge && (
+        <path d={cutter.path} fill="none" stroke={flavor.edge} strokeWidth="2.6" strokeLinejoin="round" opacity={0.35 + flavor.baked * 0.4} />
+      )}
       <path d={cutter.path} fill="none" stroke={flavor.doughLight} strokeWidth="1.4" opacity="0.7" transform="scale(0.88)" />
+      {flavor.edge && <ellipse cx="-5" cy="-8" rx="6" ry="2.2" fill="#fff" opacity={0.18 + flavor.baked * 0.12} transform="rotate(-18 -5 -8)" />}
       <Details cutter={cutter} color={flavor.doughLine} />
       <circle cx="-6" cy="-7" r="0.9" fill={flavor.speck} opacity="0.45" />
       <circle cx="7" cy="3" r="0.8" fill={flavor.speck} opacity="0.45" />

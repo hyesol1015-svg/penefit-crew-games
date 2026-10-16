@@ -8,10 +8,13 @@ import PowderIcon from '../bapkku/PowderIcon.jsx'
 import MixStage from './MixStage.jsx'
 import RollStage from './RollStage.jsx'
 import CutStage from './CutStage.jsx'
+import BakeStage from './BakeStage.jsx'
+import DecorateStage from './DecorateStage.jsx'
+import CookieFinish from './CookieFinish.jsx'
 import { CookieTray, CutterCardArt } from './CookieArt.jsx'
+import { Decoration } from './DecorArt.jsx'
 import {
   STEPS,
-  COMING_STEPS,
   FLAVORS,
   DEFAULT_FLAVOR_ID,
   MIX_TURNS,
@@ -22,6 +25,11 @@ import {
   SHEET,
   MAX_COOKIES,
   MIN_COOKIES,
+  MAX_DECOR_PER_COOKIE,
+  BAKE,
+  DECORATIONS,
+  bakedColors,
+  icingPalette,
   findCookieSpot,
 } from './cookieData.js'
 import '../../styles/bapkku.css'
@@ -35,14 +43,16 @@ import '../../styles/cookie.css'
  *   ② Mix Dough     : 그릇 안에서 원을 그리며 저어 반죽 만들기 (약 3~4초)
  *   ③ Roll Dough    : 밀대를 위아래로 4번 밀어 반죽 펴기
  *   ④ Cut Shapes    : 쿠키틀 5종으로 반죽 찍기 → 베이킹 트레이에 모으기
- *   ⑤ Ready to Bake : 굽기 '준비' 화면 (굽기·꾸미기·완성은 다음 작업에서 만들어요)
+ *   ⑤ Bake Cookies  : 트레이를 오븐에 넣고, Perfect 구간에서 Stop (타이밍 게임, 약 5~8초)
+ *   ⑥ Decorate      : 장식 4종 × 파스텔 아이싱 4색으로 쿠키마다 꾸미기
+ *   ⑦ Finish        : 접시에 담긴 완성 쿠키 + 크루 축하 + PENEFITGAME 바우처
  *
  * ★ 게임용 가상 레시피예요. 실제 반려동물 쿠키 레시피가 아니에요.
  *
  * 화면 틀은 공통 GameShell 을 쓰고, 고른 맛·반죽 상태·쿠키는 모든 단계에서 그대로 유지돼요.
  */
 
-const NEXT_LABELS = ['Next: Mix ▶', 'Next: Roll ▶', 'Next: Cut ▶', 'Next: Bake ▶', 'Baking Coming Soon']
+const NEXT_LABELS = ['Next: Mix ▶', 'Next: Roll ▶', 'Next: Cut ▶', 'Next: Bake ▶', 'Next: Decorate ▶', 'Finish!']
 
 function CookieBakery({ onHome, onRestart, crewId }) {
   const crew = findCrew(crewId)
@@ -57,6 +67,26 @@ function CookieBakery({ onHome, onRestart, crewId }) {
   const [stampId, setStampId] = useState(null)
   const [notice, setNotice] = useState('')
 
+  // ⑤ 굽기
+  const [bakePhase, setBakePhase] = useState('idle') // idle | loading | baking | result
+  const [doneness, setDoneness] = useState(0) // 0~1 (구운 정도)
+  const [elapsed, setElapsed] = useState(0) // 오븐 타이머 (ms)
+  const [bakeResult, setBakeResult] = useState(null) // soft | perfect | crispy
+  const [bakedLevel, setBakedLevel] = useState(0) // 성공했을 때의 구운 정도 (쿠키 색)
+  const rafRef = useRef(0)
+  const donenessRef = useRef(0)
+  const loadTimer = useRef(0)
+
+  // ⑥ 꾸미기
+  const [decorType, setDecorType] = useState(DECORATIONS[0].id)
+  const [icingId, setIcingId] = useState('flavor')
+  const [decorations, setDecorations] = useState([])
+  const [selectedCookie, setSelectedCookie] = useState(null)
+  const [newestDecor, setNewestDecor] = useState(null)
+
+  // ⑦ 완성 화면
+  const [isDone, setIsDone] = useState(false)
+
   const idCounter = useRef(0)
   const makeId = () => ++idCounter.current
 
@@ -66,7 +96,14 @@ function CookieBakery({ onHome, onRestart, crewId }) {
     clearTimeout(noticeTimer.current)
     noticeTimer.current = setTimeout(() => setNotice(''), 1700)
   }
-  useEffect(() => () => clearTimeout(noticeTimer.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(noticeTimer.current)
+      clearTimeout(loadTimer.current)
+      cancelAnimationFrame(rafRef.current)
+    },
+    [],
+  )
 
   const step = STEPS[stepIndex].id
   const flavor = FLAVORS.find((f) => f.id === flavorId) ?? FLAVORS[0]
@@ -83,17 +120,24 @@ function CookieBakery({ onHome, onRestart, crewId }) {
     mix: mixProgress >= 1,
     roll: flat >= 1,
     cut: cookies.length >= MIN_COOKIES,
-    ready: false, // 굽기는 아직 만들지 않았어요
+    bake: bakeResult === 'perfect',
+    decorate: decorations.length >= 1, // 장식을 하나라도 올리면 Finish
   }
-  const firstIncomplete = STEPS.findIndex((s) => !complete[s.id])
+  const firstIncomplete = STEPS.findIndex((s) => s.id !== 'done' && !complete[s.id])
   const reachable = firstIncomplete === -1 ? STEPS.length - 1 : firstIncomplete
-  const canGoNext = stepIndex < STEPS.length - 1 && complete[step]
+  const canGoNext = complete[step]
 
   const goToStep = (index) => {
-    if (index <= reachable) setStepIndex(index)
+    if (index > reachable) return
+    if (STEPS[index].id === 'done') {
+      setIsDone(true)
+      return
+    }
+    if (bakePhase === 'loading' || bakePhase === 'baking') resetBake() // 굽는 도중 다른 단계로 가면 굽기를 처음으로
+    setStepIndex(index)
   }
   const goNext = () => canGoNext && goToStep(stepIndex + 1)
-  const goPrev = () => stepIndex > 0 && setStepIndex(stepIndex - 1)
+  const goPrev = () => stepIndex > 0 && goToStep(stepIndex - 1)
 
   /* ── ② 섞기 ── */
   const handleStir = (amount, signed) => {
@@ -129,14 +173,88 @@ function CookieBakery({ onHome, onRestart, crewId }) {
     const rot = Math.round((Math.random() - 0.5) * 24)
     setCookies((list) => [...list, { id, cutterId, x: spot.x, y: spot.y, rot }])
     setStampId(id)
+    resetBake() // 쿠키가 바뀌면 다시 구워야 해요
   }
   const undoCookie = () => {
+    const last = cookies[cookies.length - 1]
     setCookies((list) => list.slice(0, -1))
+    if (last) setDecorations((ds) => ds.filter((d) => d.cookieId !== last.id))
     setStampId(null)
+    resetBake()
   }
   const clearCookies = () => {
     setCookies([])
+    setDecorations([])
     setStampId(null)
+    resetBake()
+  }
+
+  /* ── ⑤ 굽기 (타이밍 게임) ── */
+  function resetBake() {
+    cancelAnimationFrame(rafRef.current)
+    clearTimeout(loadTimer.current)
+    donenessRef.current = 0
+    setBakePhase('idle')
+    setDoneness(0)
+    setElapsed(0)
+    setBakeResult(null)
+  }
+
+  const finishBake = (d) => {
+    cancelAnimationFrame(rafRef.current)
+    const [p0, p1] = BAKE.PERFECT
+    const result = d < p0 ? 'soft' : d <= p1 ? 'perfect' : 'crispy'
+    setBakePhase('result')
+    setBakeResult(result)
+    if (result === 'perfect') setBakedLevel(d)
+  }
+
+  const startBake = () => {
+    if (bakePhase !== 'idle') return
+    setBakePhase('loading') // 트레이가 오븐 안으로 쏙
+    loadTimer.current = setTimeout(() => {
+      setBakePhase('baking')
+      const t0 = performance.now()
+      const tick = (now) => {
+        const el = now - t0
+        const d = Math.min(el / BAKE.DURATION, 1)
+        donenessRef.current = d
+        setElapsed(el)
+        setDoneness(d)
+        if (d >= 1) finishBake(1) // 끝까지 가면 너무 바삭해요
+        else rafRef.current = requestAnimationFrame(tick)
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    }, 750)
+  }
+
+  const stopBake = () => {
+    if (bakePhase !== 'baking') return
+    finishBake(donenessRef.current)
+  }
+
+  /* ── ⑥ 꾸미기 ── */
+  const palette = icingPalette(flavor)
+  const icing = palette.find((c) => c.id === icingId) ?? palette[0]
+  const handleDecorate = (cookieId, x, y) => {
+    setSelectedCookie(cookieId)
+    if (decorations.filter((d) => d.cookieId === cookieId).length >= MAX_DECOR_PER_COOKIE) {
+      showNotice('This cookie is full! Try another one.')
+      return
+    }
+    const id = makeId()
+    const size = (decorType === 'dots' ? 6.6 : 6) * (0.92 + Math.random() * 0.16)
+    const rot = Math.round((Math.random() - 0.5) * 40)
+    setDecorations((ds) => [...ds, { id, cookieId, type: decorType, color: icing.color, x, y, rot, size }])
+    setNewestDecor(id)
+  }
+  const undoDecor = () => {
+    setDecorations((ds) => ds.slice(0, -1))
+    setNewestDecor(null)
+  }
+  const clearDecor = () => {
+    setDecorations([])
+    setNewestDecor(null)
   }
 
   /* ── 크루 말풍선 ── */
@@ -164,7 +282,27 @@ function CookieBakery({ onHome, onRestart, crewId }) {
         : cookies.length >= MAX_COOKIES
           ? 'The tray is full! Tap Next.'
           : 'So cute! Cut more shapes or tap Next.'),
-    ready: 'Your cookies are on the tray. Baking is coming soon!',
+    bake:
+      bakePhase === 'idle'
+        ? 'Tap Bake! Then tap Stop in the Perfect zone.'
+        : bakePhase === 'loading'
+          ? 'Into the oven we go!'
+          : bakePhase === 'baking'
+            ? doneness < BAKE.PERFECT[0]
+              ? 'Baking... wait for it!'
+              : doneness <= BAKE.PERFECT[1]
+                ? 'Now! Tap Stop!'
+                : 'Hurry, tap Stop!'
+            : bakeResult === 'perfect'
+              ? 'Golden and perfect! Tap Next to decorate.'
+              : bakeResult === 'soft'
+                ? 'Still a bit soft. Let\'s try again!'
+                : 'Oops, a little too crispy! Let\'s try again!',
+    decorate:
+      notice ||
+      (decorations.length === 0
+        ? 'Pick a decoration, then tap a cookie!'
+        : 'So pretty! Decorate more or tap Finish!'),
   }
 
   /* ── 위쪽: 단계 표시 + 진행 게이지 ── */
@@ -178,9 +316,37 @@ function CookieBakery({ onHome, onRestart, crewId }) {
   )
   const status = (
     <>
-      <StepBar steps={STEPS} current={stepIndex} reachable={Math.min(reachable, STEPS.length - 1)} onSelect={goToStep} />
+      <StepBar steps={STEPS} current={isDone ? STEPS.length - 1 : stepIndex} reachable={reachable} onSelect={goToStep} />
       {step === 'mix' && meter('Mixing', mixProgress, <>Mixed <b>{Math.round(mixProgress * 100)}%</b></>)}
       {step === 'roll' && meter('Rolling', flat, <>Rolls <b>{rollCount}</b> / {ROLL_PASSES}</>)}
+      {step === 'bake' && (
+        <div className="meter cookie-meter bake-meter">
+          <div
+            className="bake-meter__bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(doneness * 100)}
+            aria-label="Baking"
+            style={{ '--p0': `${BAKE.PERFECT[0] * 100}%`, '--p1': `${BAKE.PERFECT[1] * 100}%` }}
+          >
+            <span className="bake-meter__zone" aria-hidden="true">
+              Perfect
+            </span>
+            <span className="bake-meter__marker" style={{ left: `${doneness * 100}%` }} aria-hidden="true" />
+          </div>
+          <span className="stage__count">
+            ⏱ <b>{(elapsed / 1000).toFixed(1)}s</b>
+          </span>
+        </div>
+      )}
+      {step === 'decorate' && (
+        <div className="meter cookie-meter">
+          <span className="stage__count">
+            Decorations <b>{decorations.length}</b>
+          </span>
+        </div>
+      )}
       {step === 'cut' && (
         <div className="meter cookie-meter">
           <span className="stage__count">
@@ -280,20 +446,93 @@ function CookieBakery({ onHome, onRestart, crewId }) {
     </div>
   )
 
-  const comingPanel = (
-    <div className="powder-panel coming-next">
-      <p className="coming-next__lead">
-        <b>{cookies.length}</b> {flavor.name} {cookies.length === 1 ? 'cookie is' : 'cookies are'} ready for the oven.
+  const bakeButton =
+    bakePhase === 'baking' ? (
+      <button key="stop" type="button" className="bake-btn bake-btn--stop" onClick={stopBake}>
+        ■ Stop!
+      </button>
+    ) : bakePhase === 'result' && bakeResult !== 'perfect' ? (
+      <button key="retry" type="button" className="bake-btn" onClick={resetBake}>
+        ↺ Try Again
+      </button>
+    ) : bakePhase === 'result' ? (
+      <button key="done" type="button" className="bake-btn bake-btn--done" disabled>
+        ✓ Perfectly Baked
+      </button>
+    ) : (
+      <button key="bake" type="button" className="bake-btn" onClick={startBake} disabled={bakePhase === 'loading'}>
+        {bakePhase === 'loading' ? 'Into the oven...' : 'Bake!'}
+      </button>
+    )
+
+  const bakePanel = (
+    <div className="powder-panel bake-panel">
+      {bakeButton}
+      <p className={`bake-result ${bakeResult ? `is-${bakeResult}` : ''}`} aria-live="polite">
+        {bakeResult === 'perfect'
+          ? 'Golden and perfect!'
+          : bakeResult === 'soft'
+            ? 'Too soft! Stop a little later.'
+            : bakeResult === 'crispy'
+              ? 'Too crispy! Stop a little sooner.'
+              : 'Stop when the marker is in the green Perfect zone.'}
       </p>
-      <ul className="coming-next__list">
-        {COMING_STEPS.map((s) => (
-          <li key={s}>
-            <span>{s}</span>
-            <span className="coming-next__tag">Coming soon</span>
-          </li>
+      {bakeResult === 'perfect' && (
+        <button type="button" className="text-btn" onClick={resetBake}>
+          Bake again
+        </button>
+      )}
+      <p className="panel-help">You can also tap the oven to stop.</p>
+    </div>
+  )
+
+  const decoratePanel = (
+    <div className="powder-panel decor-panel">
+      <div className="option-grid decor-grid" role="radiogroup" aria-label="Decoration">
+        {DECORATIONS.map((d) => {
+          const active = decorType === d.id
+          return (
+            <button
+              key={d.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              className={`chip chip--decor ${active ? 'is-active' : ''}`}
+              onClick={() => setDecorType(d.id)}
+            >
+              <svg className="chip__decor" viewBox="-10 -10 20 20" aria-hidden="true">
+                <circle r="9.5" fill="#FFF6EA" />
+                <Decoration type={d.id} color={icing.color} size={6.4} palette={palette.map((c) => c.color)} />
+              </svg>
+              <span className="chip__name">{d.name}</span>
+            </button>
+          )
+        })}
+      </div>
+      <div className="icing-row" role="radiogroup" aria-label="Icing color">
+        {palette.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            role="radio"
+            aria-checked={icingId === c.id}
+            aria-label={`${c.name} icing`}
+            title={c.name}
+            className={`icing-swatch ${icingId === c.id ? 'is-active' : ''}`}
+            style={{ '--icing': c.color }}
+            onClick={() => setIcingId(c.id)}
+          />
         ))}
-      </ul>
-      <p className="panel-help">These steps will be added in the next update.</p>
+      </div>
+      <div className="powder-panel__tools">
+        <button type="button" className="tool-btn" onClick={undoDecor} disabled={decorations.length === 0}>
+          ↶ Undo
+        </button>
+        <button type="button" className="tool-btn" onClick={clearDecor} disabled={decorations.length === 0}>
+          ↺ Clear Decorations
+        </button>
+      </div>
+      <p className="panel-help">Decorate at least 1 cookie. Make each one different!</p>
     </div>
   )
 
@@ -302,9 +541,10 @@ function CookieBakery({ onHome, onRestart, crewId }) {
     mix: progressPanel(mixProgress, mixProgress >= 1, { todo: 'Stir to mix the dough', done: 'Dough is ready!', help: 'Move your finger or mouse in circles inside the bowl.' }, 4),
     roll: progressPanel(flat, flat >= 1, { todo: `Roll ${ROLL_PASSES} times`, done: 'Dough is flat!', help: 'Drag the rolling pin up and down over the dough.' }, ROLL_PASSES),
     cut: cutterPicker,
-    ready: comingPanel,
+    bake: bakePanel,
+    decorate: decoratePanel,
   }
-  const panelTitles = { flavor: 'Dough Flavor', mix: 'Mix Dough', roll: 'Roll Dough', cut: 'Cookie Cutters', ready: 'Next Up' }
+  const panelTitles = { flavor: 'Dough Flavor', mix: 'Mix Dough', roll: 'Roll Dough', cut: 'Cookie Cutters', bake: 'Bake Cookies', decorate: 'Decorations' }
 
   /* ── 노트북 왼쪽 레시피 카드 ── */
   const recipeCard = (
@@ -314,14 +554,9 @@ function CookieBakery({ onHome, onRestart, crewId }) {
       </p>
       <p className="recipe__tip">{STEPS[stepIndex].tip}</p>
       <ul className="recipe__list">
-        {STEPS.slice(0, 4).map((s, i) => (
+        {STEPS.slice(0, -1).map((s, i) => (
           <li key={s.id} className={i < stepIndex ? 'is-done' : i === stepIndex ? 'is-current' : ''}>
             {i < stepIndex ? '✓' : '•'} {s.title}
-          </li>
-        ))}
-        {COMING_STEPS.map((s) => (
-          <li key={s} className="is-soon">
-            • {s} <small>(soon)</small>
           </li>
         ))}
       </ul>
@@ -377,14 +612,25 @@ function CookieBakery({ onHome, onRestart, crewId }) {
         <CookieTray cookies={cookies} flavor={flavor} max={MAX_COOKIES} />
       </div>
     )
+  } else if (step === 'bake') {
+    scene = (
+      <div className="cookie-scene">
+        <BakeStage flavor={flavor} cookies={cookies} phase={bakePhase} doneness={bakePhase === 'idle' ? 0 : doneness} elapsed={elapsed} onOvenTap={stopBake} />
+      </div>
+    )
   } else {
     scene = (
-      <div className="cookie-scene cookie-scene--ready">
-        <div className="ready-card">
-          <span className="ready-card__badge">Coming soon</span>
-          <CookieTray cookies={cookies} flavor={flavor} big max={Math.max(cookies.length, 4)} />
-          <p className="ready-card__text">Ready for the oven!</p>
-        </div>
+      <div className="cookie-scene">
+        <DecorateStage
+          cookies={cookies}
+          colors={bakedColors(flavor, bakedLevel)}
+          decorations={decorations}
+          palette={palette.map((c) => c.color)}
+          selectedId={selectedCookie}
+          newestId={newestDecor}
+          onDecorate={handleDecorate}
+          onMiss={() => showNotice('Tap a cookie to decorate it!')}
+        />
       </div>
     )
   }
@@ -405,6 +651,20 @@ function CookieBakery({ onHome, onRestart, crewId }) {
       right={panels[step]}
       rightTitle={panelTitles[step]}
       actions={actions}
+      overlay={
+        isDone && (
+          <CookieFinish
+            crew={crew}
+            flavor={flavor}
+            cookies={cookies}
+            colors={bakedColors(flavor, bakedLevel)}
+            decorations={decorations}
+            palette={palette.map((c) => c.color)}
+            onRemake={() => onRestart?.()}
+            onHome={onHome}
+          />
+        )
+      }
     >
       {/* 안내: 고른 크루가 말풍선으로 알려 줘요 */}
       <div className="guide">

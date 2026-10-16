@@ -14,18 +14,17 @@ import { TOPPERS } from '../bapkku/bapkkuData.js'
 
 /* ─────────────────────────────────────────────
  * 1. 단계
- *    ready 는 '굽기 준비' 화면이에요. 굽기·꾸미기·완성은 다음 작업에서 만들어요.
+ *    done 은 '완성 화면'(덮개 화면)을 여는 자리예요.
  * ───────────────────────────────────────────── */
 export const STEPS = [
   { id: 'flavor', label: 'Flavor', title: 'Choose Flavor', tip: 'Pick a powder flavor. Your dough will turn that color.' },
   { id: 'mix', label: 'Mix', title: 'Mix Dough', tip: 'Stir in circles inside the bowl until the dough comes together.' },
   { id: 'roll', label: 'Roll', title: 'Roll Dough', tip: 'Drag the rolling pin up and down over the dough to flatten it.' },
   { id: 'cut', label: 'Cut', title: 'Cut Shapes', tip: 'Pick a cookie cutter and tap the dough to cut cute shapes.' },
-  { id: 'ready', label: 'Ready', title: 'Ready to Bake', tip: 'Your cookies are on the tray. Baking is coming soon!' },
+  { id: 'bake', label: 'Bake', title: 'Bake Cookies', tip: 'Tap Bake, then tap Stop when the marker is in the Perfect zone.' },
+  { id: 'decorate', label: 'Decorate', title: 'Decorate', tip: 'Pick a decoration, then tap a cookie to add it.' },
+  { id: 'done', label: 'Done', title: 'Finish', tip: 'Enjoy your cookies!' },
 ]
-
-/* 다음 작업에서 만들 단계 (지금은 'Coming soon' 으로만 보여요) */
-export const COMING_STEPS = ['Bake', 'Decorate', 'Finish']
 
 /* ─────────────────────────────────────────────
  * 2. 반죽 맛 — 밥꾸 스튜디오의 파우더 데이터(TOPPERS)를 그대로 써요
@@ -70,6 +69,47 @@ export const FLAVORS = FLAVOR_ORDER.map((id) => TOPPERS.find((t) => t.id === id)
   })
 
 export const DEFAULT_FLAVOR_ID = FLAVORS[0].id
+
+/* ─────────────────────────────────────────────
+ * 굽기 (타이밍 게임)
+ *    DURATION : 게이지가 끝까지 차는 시간 (ms) — 끝까지 가면 너무 바삭해져요
+ *    PERFECT  : 이 구간(0~1)에서 Stop 을 누르면 성공 (약 3.5초 ~ 5.5초 사이)
+ * ───────────────────────────────────────────── */
+export const BAKE = { DURATION: 7000, PERFECT: [0.5, 0.78] }
+
+const GOLDEN = '#D9A55E' // 노릇한 색
+const TOAST = '#8A5530' // 너무 구웠을 때 갈색
+
+/**
+ * 구운 정도(level 0~1)에 맞춘 쿠키 색
+ *  - 노릇한 색은 최대 38%만 섞어서 원래 파우더 맛 색이 계속 보여요.
+ *  - 너무 오래 구우면(PERFECT 이후) 조금씩 갈색이 더해져요.
+ */
+export function bakedColors(flavor, level) {
+  const l = Math.min(Math.max(level, 0), 1)
+  const g = (Math.min(l, 0.75) / 0.75) * 0.38
+  const burn = (Math.max(0, l - BAKE.PERFECT[1]) / (1 - BAKE.PERFECT[1])) * 0.3
+  const tone = (hex) => mixColor(mixColor(hex, GOLDEN, g), TOAST, burn)
+  return {
+    ...flavor,
+    dough: tone(flavor.dough),
+    doughSide: mixColor(tone(flavor.doughSide), TOAST, 0.14 * l),
+    doughLight: tone(flavor.doughLight),
+    doughLine: mixColor(tone(flavor.doughLine), TOAST, 0.15 * l),
+    edge: mixColor(tone(flavor.dough), TOAST, 0.22 + 0.25 * l), // 노릇한 가장자리
+    baked: l,
+  }
+}
+
+/** 장식 아이싱 색 4가지: 고른 맛과 어울리는 파스텔 */
+export function icingPalette(flavor) {
+  return [
+    { id: 'flavor', name: `${flavor.name} Pastel`, color: mixColor(flavor.color, '#ffffff', 0.5) },
+    { id: 'cream', name: 'Cream', color: '#FFF6EA' },
+    { id: 'pink', name: 'Pink', color: '#F9C2D0' },
+    { id: 'butter', name: 'Butter', color: '#FFE29A' },
+  ]
+}
 
 /* ─────────────────────────────────────────────
  * 4. 섞기·밀기 기준
@@ -162,6 +202,7 @@ export const DEFAULT_CUTTER_ID = CUTTERS[0].id
 export const SHEET = { cx: 160, cy: 112, rx: 122, ry: 76 }
 export const COOKIE_R = 19 // 쿠키 반지름 (겹침 판단용)
 export const MAX_COOKIES = 10
+export const MAX_DECOR_PER_COOKIE = 8
 export const MIN_COOKIES = 1 // 이만큼만 찍어도 다음으로 갈 수 있어요
 
 /** 반죽 위 (x, y)에 쿠키를 놓을 수 있는지: 반죽 안쪽 + 다른 쿠키와 많이 겹치지 않기 */
@@ -184,4 +225,37 @@ export function findCookieSpot(x, y, cookies) {
     }
   }
   return null
+}
+
+/* ─────────────────────────────────────────────
+ * 7. 장식 4종 (Paw Print · Heart · Star · Dots)
+ *    모양 그림은 DecorArt.jsx 에 있어요.
+ * ───────────────────────────────────────────── */
+export const DECORATIONS = [
+  { id: 'paw', name: 'Paw Print' },
+  { id: 'heart', name: 'Heart' },
+  { id: 'star', name: 'Star' },
+  { id: 'dots', name: 'Dots' },
+]
+
+/**
+ * 쿠키 여러 개를 상자(box) 안에 고르게 놓는 자리 계산
+ *  box: { x, y, w, h } → [{ x, y }], 그리고 쿠키 크기 배율 scale (쿠키 지름 약 40 기준)
+ */
+export function gridLayout(n, box, maxScale = 2) {
+  if (n === 0) return { spots: [], scale: 1 }
+  const cols = n <= 3 ? n : n <= 4 ? 2 : n <= 6 ? 3 : n <= 8 ? 4 : 5
+  const rows = Math.ceil(n / cols)
+  const cw = box.w / cols
+  const ch = box.h / rows
+  const scale = Math.min(maxScale, Math.min(cw, ch) / 44)
+  const spots = []
+  for (let i = 0; i < n; i += 1) {
+    const r = Math.floor(i / cols)
+    const inRow = r === rows - 1 ? n - r * cols : cols
+    const c = i % cols
+    const offset = (cols - inRow) * cw * 0.5 // 마지막 줄은 가운데로
+    spots.push({ x: box.x + offset + cw * (c + 0.5), y: box.y + ch * (r + 0.5) })
+  }
+  return { spots, scale }
 }

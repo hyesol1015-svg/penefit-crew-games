@@ -78,7 +78,9 @@
 
 .mix-svg,
 .roll-svg,
-.cut-svg {
+.cut-svg,
+.oven-svg,
+.decor-svg {
   display: block;
   flex: 1;
   min-height: 0;
@@ -124,7 +126,8 @@
 
 .mix-svg:focus,
 .roll-svg:focus,
-.cut-svg:focus {
+.cut-svg:focus,
+.decor-cookie:focus {
   outline: none;
 }
 
@@ -344,46 +347,6 @@
   padding: 10px;
 }
 
-/* ── 굽기 준비 화면 ── */
-.cookie-scene--ready {
-  justify-content: center;
-}
-
-.ready-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: min(100%, 470px);
-  padding: 22px 14px 14px;
-  border-radius: 24px;
-  background: rgba(255, 252, 245, 0.92);
-  box-shadow:
-    0 6px 0 #f0d3a8,
-    0 16px 30px rgba(160, 100, 50, 0.18);
-}
-
-.ready-card__badge {
-  position: absolute;
-  top: -14px;
-  padding: 5px 16px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ffc7ae, var(--peach-deep));
-  font-family: var(--font-head);
-  font-size: 0.9rem;
-  color: #fff;
-  text-shadow: 0 1px 0 rgba(180, 90, 60, 0.45);
-  box-shadow: 0 3px 0 var(--peach-edge);
-}
-
-.ready-card__text {
-  margin: 0;
-  font-family: var(--font-head);
-  font-size: 1.05rem;
-  color: var(--ink-soft);
-}
-
 /* ==========================================================
  * 패널
  * ========================================================== */
@@ -478,55 +441,7 @@
   font-size: 0.82rem;
 }
 
-/* 다음에 만들 단계 안내 */
-.coming-next__lead {
-  margin: 0;
-  font-family: var(--font-head);
-  font-size: 0.95rem;
-  text-align: center;
-  color: var(--ink);
-}
-
-.coming-next__list {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.coming-next__list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: #fff;
-  font-family: var(--font-head);
-  color: var(--ink-faint);
-  box-shadow: 0 2px 0 #f0dfcb;
-}
-
-.coming-next__tag {
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--cream-deep);
-  font-size: 0.72rem;
-  color: var(--ink-soft);
-}
-
-/* 레시피 카드: 아직 없는 단계 + 가상 레시피 안내 */
-.recipe__list li.is-soon {
-  background: transparent;
-  border: 1.5px dashed #ecdcc8;
-}
-
-.recipe__list li.is-soon small {
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-}
-
+/* 레시피 카드: 가상 레시피 안내 */
 .recipe__note {
   margin: 4px 0 0;
   font-size: 0.78rem;
@@ -632,6 +547,380 @@
   }
   .flavor-tag {
     font-size: 0.8rem;
+  }
+}
+
+/* ==========================================================
+ * ⑤ 굽기 — 오븐
+ * ========================================================== */
+.oven-svg {
+  max-width: 470px;
+}
+
+.oven-svg.is-baking {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 트레이가 오븐 안으로 쏙 */
+.oven-tray {
+  transform-box: view-box;
+  transform-origin: 160px 150px;
+  animation: tray-in 0.7s cubic-bezier(0.3, 1.1, 0.5, 1) both;
+}
+
+@keyframes tray-in {
+  from {
+    transform: translateY(46px) scale(1.12);
+    opacity: 0.6;
+  }
+}
+
+.oven-tray-out {
+  animation: tray-hold 2.4s ease-in-out infinite;
+}
+
+@keyframes tray-hold {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.oven-glass {
+  transition: opacity 0.5s ease;
+}
+
+.oven-glow {
+  transition: opacity 0.4s ease;
+}
+
+.oven-svg.is-baking .oven-glow {
+  animation: oven-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes oven-glow {
+  50% {
+    opacity: 0.12;
+  }
+}
+
+.oven-coil {
+  transition: stroke 0.4s ease;
+}
+
+.oven-light.is-on {
+  animation: hint-blink 0.9s ease-in-out infinite;
+}
+
+.oven-dial {
+  transition: transform 0.4s ease;
+}
+
+.oven-dial.is-on {
+  transform: rotate(60deg);
+}
+
+.oven-heat path {
+  animation: heat-rise 1.4s ease-in-out infinite;
+}
+
+.oven-heat path:nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+.oven-heat path:nth-child(3) {
+  animation-delay: 0.9s;
+}
+
+@keyframes heat-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* 굽기 게이지: 덜 구움 → Perfect(민트) → 너무 바삭 */
+.bake-meter__bar {
+  position: relative;
+  flex: 1;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #fff4d6 0%,
+    #ffe3a3 var(--p0),
+    #9fdcb9 var(--p0),
+    #7fcfa3 var(--p1),
+    #f7b48f var(--p1),
+    #c98559 100%
+  );
+  box-shadow:
+    inset 0 2px 4px rgba(150, 100, 60, 0.2),
+    0 2px 0 rgba(255, 255, 255, 0.8);
+}
+
+.bake-meter__zone {
+  position: absolute;
+  top: 50%;
+  left: var(--p0);
+  width: calc(var(--p1) - var(--p0));
+  transform: translateY(-50%);
+  font-family: var(--font-head);
+  font-size: 0.7rem;
+  text-align: center;
+  color: #2f6f4e;
+  pointer-events: none;
+}
+
+.bake-meter__marker {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 8px;
+  margin-left: -4px;
+  border-radius: 4px;
+  background: #fff;
+  border: 2.5px solid #6b4320;
+  box-shadow: 0 2px 4px rgba(90, 50, 20, 0.3);
+}
+
+/* 큰 Bake / Stop 버튼 */
+.bake-panel {
+  align-items: stretch;
+}
+
+.bake-btn {
+  appearance: none;
+  border: 0;
+  min-height: 58px;
+  border-radius: 999px;
+  font-family: var(--font-head);
+  font-size: 1.3rem;
+  color: #fff;
+  cursor: pointer;
+  text-shadow: 0 2px 0 rgba(180, 90, 60, 0.4);
+  background: linear-gradient(180deg, #ffad8c 0%, #f5916c 55%, #ec7f5a 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 6px 0 #cf6b48,
+    0 10px 16px rgba(233, 143, 108, 0.3);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  touch-action: manipulation;
+}
+
+.bake-btn:not(:disabled):active {
+  transform: translateY(5px);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 1px 0 #cf6b48;
+}
+
+.bake-btn--stop {
+  background: linear-gradient(180deg, #ff9fae 0%, #f27c90 60%, #e5677e 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 6px 0 #c4506a,
+    0 10px 16px rgba(229, 103, 126, 0.3);
+  animation: stop-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes stop-pulse {
+  50% {
+    scale: 1.03;
+  }
+}
+
+.bake-btn--done,
+.bake-btn:disabled {
+  cursor: default;
+}
+
+.bake-btn--done {
+  text-shadow: 0 2px 0 rgba(50, 120, 85, 0.4);
+  background: linear-gradient(180deg, #86cfa6 0%, #5fb386 55%, #4fa576 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 6px 0 #3b8460;
+}
+
+.bake-result {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 0.92rem;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.bake-result.is-perfect {
+  color: #2f7a57;
+}
+
+.bake-result.is-soft,
+.bake-result.is-crispy {
+  color: #c9663f;
+}
+
+/* ==========================================================
+ * ⑥ 꾸미기
+ * ========================================================== */
+.decor-svg {
+  max-width: 540px;
+  touch-action: manipulation;
+}
+
+.decor-cookie {
+  cursor: pointer;
+  touch-action: none;
+}
+
+.decor-cookie:focus-visible {
+  outline: none;
+  filter: drop-shadow(0 0 3px var(--peach-deep));
+}
+
+.decor-ring {
+  pointer-events: none;
+  animation: meat-ring 1.2s ease-in-out infinite alternate;
+}
+
+.decor.is-new {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: decor-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes decor-pop {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+}
+
+.decor-sparkle path {
+  pointer-events: none;
+  animation: decor-spark 0.7s ease-out both;
+}
+
+@keyframes decor-spark {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sx), var(--sy)) scale(1.1);
+  }
+}
+
+.decor-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chip--decor {
+  flex-direction: column;
+  gap: 2px;
+  min-height: 66px;
+  padding: 5px 2px;
+}
+
+.chip__decor {
+  display: block;
+  width: 38px;
+  height: 38px;
+  overflow: visible;
+}
+
+.chip--decor .chip__name {
+  font-size: 0.8rem;
+}
+
+/* 아이싱 색 고르기 */
+.icing-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.icing-swatch {
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: var(--icing);
+  box-shadow:
+    0 0 0 1.5px #ecdcc8,
+    0 3px 0 #ecdcc8;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  touch-action: manipulation;
+}
+
+.icing-swatch.is-active {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow:
+    0 0 0 3px #f09aaa,
+    0 4px 0 #f3c2cb;
+}
+
+/* ==========================================================
+ * ⑦ 완성 화면 (밥꾸 완성 화면 스타일을 함께 써요)
+ * ========================================================== */
+.cookie-finish__lead {
+  margin: 4px 0 0;
+}
+
+.cookie-finish__dish {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.plate-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  animation: card-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
+}
+
+.finish-sparkle {
+  position: absolute;
+  font-size: 16px;
+  line-height: 1;
+  color: #ffc23a;
+  text-shadow: 0 0 6px rgba(255, 214, 102, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  animation: twinkle 1.8s ease-in-out infinite;
+}
+
+@media (max-width: 767px) {
+  .cookie-finish .celebrate__plate {
+    max-width: 310px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oven-tray,
+  .oven-tray-out,
+  .oven-svg.is-baking .oven-glow,
+  .oven-light.is-on,
+  .oven-heat path,
+  .bake-btn--stop,
+  .decor.is-new,
+  .decor-sparkle path,
+  .plate-svg,
+  .finish-sparkle {
+    animation-duration: 0.01s;
+    animation-iteration-count: 1;
   }
 }
 

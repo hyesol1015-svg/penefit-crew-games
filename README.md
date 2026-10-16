@@ -60,9 +60,21 @@ PC에서 휴대폰 화면처럼 보려면 Chrome에서 **F12 → 왼쪽 위 휴�
 
 ```bash
 npm run build     # dist/ 폴더에 결과물 생성 (오류 확인용으로도 사용)
-npm run preview   # 빌드 결과 미리보기
+npm run preview   # 빌드 결과 미리보기 → http://localhost:4173/penefit-crew-games/
 npm run lint      # 코드 검사
 ```
+
+### GitHub Pages 배포
+
+- 주소: **https://hyesol1015-svg.github.io/penefit-crew-games/**
+- `main` 브랜치에 push 하면 `.github/workflows/deploy.yml` 이 자동으로
+  `npm ci` → `npm run build` 를 하고 `dist/` 폴더를 GitHub Pages 에 올려요.
+  진행 상황은 GitHub 저장소의 **Actions** 탭에서 볼 수 있어요.
+- 처음 한 번만: 저장소 **Settings → Pages → Build and deployment → Source** 를 **GitHub Actions** 로 골라 주세요.
+- 배포 경로(`/penefit-crew-games/`)는 `vite.config.js` 의 `base` 에 있어요.
+  `npm run dev` 는 지금처럼 `http://localhost:5173/` 에서 열려요.
+- 이미지 경로는 지금처럼 `'/assets/...'` 로 적으면 돼요. `src/gameAssets.js` 의 `assetUrl()` 이
+  배포 경로를 자동으로 붙여 줘요. (저장소 이름을 바꾸면 `vite.config.js` 의 `base` 도 같이 바꿔 주세요)
 
 ---
 

@@ -113,7 +113,6 @@ src/
 │  │  ├─ JellyStage.jsx          #   몰드 트레이 (붓기·굳히기·꺼내기)
 │  │  ├─ JellyArt.jsx            #   젤리·몰드·접시 그림 (임시 SVG)
 │  │  └─ JellyFinish.jsx         #   완성 화면 (젤리 접시 + 크루 + 바우처)
-│  ├─ cafe/MungpuccinoCafe.jsx    # 멍푸치노 카페 (화면 틀만 연결, 다음 단계에서 구현)
 └─ styles/
    ├─ global.css              # 색상 변수, 말랑 버튼, 주방 배경
    ├─ shell.css               # ★ 게임 화면 반응형 배치 (노트북/아이패드/휴대폰/가로)

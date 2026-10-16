@@ -9,7 +9,7 @@ import { gridLayout } from './cookieData.js'
  * CookieFinish — 쿠키 완성 화면 (덮개 화면)
  *
  *  - 직접 만든 쿠키(모양·맛 색·구운 색·장식)를 귀여운 접시에 그대로 담아 보여 줘요.
- *  - 고른 크루가 옆에서 축하하고, 아래에 PENEFITGAME 바우처 카드가 나와요.
+ *  - 고른 크루가 옆에서 축하하고, 아래에 PENEGAME 바우처 카드가 나와요.
  *  - 밥꾸 완성 화면과 같은 스타일(.celebrate …)을 함께 써요.
  */
 const CONFETTI_COLORS = ['#FFB496', '#FFD666', '#CDEEDF', '#F9C2D0', '#C9E4FF', '#E4D4FF']

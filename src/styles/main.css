@@ -516,8 +516,12 @@
 
 /* 흰 카드 위에 캐릭터 (원본 색 그대로, 필터 없음) */
 .crew-card__frame {
-  display: block;
+  /* 네 크루 카드 크기를 똑같이: 가로 1 : 세로 1.14 (안쪽 칸은 거의 정사각형) */
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
   width: 100%;
+  aspect-ratio: 1 / 1.14;
   padding: 7%;
   border: 3px solid #fff;
   border-radius: 22px;
@@ -528,6 +532,16 @@
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+/* 크루를 '높이 기준'으로 맞춰요.
+   characters.js 의 front(앞모습) 영역은 모두 캐릭터 둘레에 같은 여백(약 10px)을 두고 잘랐기 때문에
+   잘린 영역의 높이를 같게 하면 보이는 캐릭터 키도 같아져요. (가로는 캐릭터마다 비율대로, 가운데 정렬)
+   발은 카드 아래쪽에 같은 높이로 맞춰져요. 원본 PNG와 앞모습 자르기 방식은 그대로예요. */
+.crew-card__frame .crew-sprite {
+  flex: none;
+  width: auto;
+  height: 100%;
 }
 
 .crew-card__name {

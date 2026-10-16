@@ -45,7 +45,7 @@ import '../../styles/cookie.css'
  *   ④ Cut Shapes    : 쿠키틀 5종으로 반죽 찍기 → 베이킹 트레이에 모으기
  *   ⑤ Bake Cookies  : 트레이를 오븐에 넣고, Perfect 구간에서 Stop (타이밍 게임, 약 5~8초)
  *   ⑥ Decorate      : 장식 4종 × 파스텔 아이싱 4색으로 쿠키마다 꾸미기
- *   ⑦ Finish        : 접시에 담긴 완성 쿠키 + 크루 축하 + PENEFITGAME 바우처
+ *   ⑦ Finish        : 접시에 담긴 완성 쿠키 + 크루 축하 + PENEGAME 바우처
  *
  * ★ 게임용 가상 레시피예요. 실제 반려동물 쿠키 레시피가 아니에요.
  *

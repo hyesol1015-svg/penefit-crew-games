@@ -1920,3 +1920,539 @@
     opacity: 0.8;
   }
 }
+
+/* ==========================================================
+ * 바우처 카드: '25% OFF' 강조 + Copy Code / How to Use 버튼 (네 게임 공통)
+ * ========================================================== */
+.voucher__title.has-deal {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+}
+
+.voucher__deal {
+  font-family: var(--font-title);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #e4673f;
+  text-shadow: 0 2px 0 #fff;
+  letter-spacing: 0.02em;
+}
+
+.voucher__deal-sub {
+  font-size: 1rem;
+  color: #c9663f;
+}
+
+.voucher__buttons {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
+.voucher__buttons .btn {
+  min-width: 0;
+  padding: 0 8px;
+  font-size: 1rem;
+}
+
+.btn.voucher__howto {
+  min-height: 50px;
+  color: #c9663f;
+  background: linear-gradient(180deg, #ffffff 0%, #fff5ee 100%);
+  box-shadow:
+    inset 0 0 0 2px #ffc7ae,
+    0 5px 0 #f3c2a8,
+    0 9px 14px rgba(233, 143, 108, 0.18);
+}
+
+.btn.voucher__howto:not(:disabled):active {
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 0 0 2px #ffc7ae,
+    0 1px 0 #f3c2a8;
+}
+
+/* ==========================================================
+ * 바우처 사용 방법 안내 창 (VoucherHowTo.jsx)
+ * ========================================================== */
+.howto {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(90, 66, 50, 0.32);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  overflow-y: auto;
+  animation: fade-in 0.25s ease both;
+}
+
+.howto__dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 420px);
+  max-height: 100%;
+  margin: auto;
+  padding: 22px 18px 18px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #fffefa, #fff6e6);
+  box-shadow:
+    inset 0 3px 0 #fff,
+    0 8px 0 #f0d3a8,
+    0 24px 50px rgba(160, 100, 50, 0.3);
+  text-align: center;
+  touch-action: pan-y;
+  outline: none;
+  animation: card-bounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.howto__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink-soft);
+  box-shadow: 0 3px 0 #ecd2b6;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.howto__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.howto__close:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #ecd2b6;
+}
+
+.howto__eyebrow {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--peach-edge);
+}
+
+.howto__title {
+  margin: 0;
+  padding: 0 34px;
+  font-family: var(--font-head);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+/* 1 · 2 · 3 단계 점 */
+.howto__dots {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  position: relative;
+}
+
+.howto__dots::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 50%;
+  height: 3px;
+  border-radius: 2px;
+  background: #f1e2cf;
+}
+
+.howto__dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  box-shadow: 0 2px 0 #ecd2b6;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.2s ease;
+}
+
+.howto__dot.is-done {
+  background: #cdeedf;
+  color: #2f7a57;
+}
+
+.howto__dot.is-current {
+  background: var(--butter-deep);
+  color: #6b4320;
+  transform: scale(1.15);
+  box-shadow: 0 3px 0 var(--butter-edge);
+}
+
+/* 단계 카드 */
+.howto__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 0;
+  padding: 16px 14px 14px;
+  border-radius: 24px;
+  background: var(--tone-bg);
+  box-shadow: inset 0 0 0 2px var(--tone-ring);
+  overflow-y: auto;
+}
+
+.howto__card.from-right {
+  animation: howto-in-right 0.35s ease both;
+}
+
+.howto__card.from-left {
+  animation: howto-in-left 0.35s ease both;
+}
+
+@keyframes howto-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+}
+
+@keyframes howto-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-26px);
+  }
+}
+
+.howto__step {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tone-ink);
+}
+
+.howto__icons {
+  display: flex;
+  gap: 10px;
+}
+
+.howto__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 0 var(--tone-ring);
+  animation: jelly-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.howto__icon-svg {
+  width: 30px;
+  height: 30px;
+}
+
+.howto__card-title {
+  margin: 2px 0 0;
+  font-family: var(--font-head);
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  word-break: keep-all;
+}
+
+.howto__lines {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.howto__lines li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.92rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.howto__num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--tone-ring);
+  font-family: var(--font-title);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.howto__nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.howto__btn.btn {
+  min-height: 50px;
+  font-size: 1.05rem;
+}
+
+.howto__inline-code {
+  padding: 0 4px;
+  border-radius: 6px;
+  background: #fff7dc;
+  font-family: var(--font-title);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #a7701a;
+}
+
+.howto__lines li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* 2단계: 코드 쿠폰 박스 + Copy 버튼 */
+.howto__code {
+  width: 100%;
+}
+
+.howto__code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 7px 7px 12px;
+  border: 2px dashed var(--tone-ring);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.howto__code-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-title);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  color: var(--ink);
+  outline: none;
+}
+
+.howto__code-text:focus-visible {
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px #ffe7a3;
+}
+
+.btn.howto__code-copy {
+  flex: none;
+  min-width: 86px;
+  min-height: 42px;
+  padding: 0 14px;
+  font-size: 0.98rem;
+  color: #6b4320;
+  background: linear-gradient(180deg, #ffe58c, #ffd25a);
+  box-shadow: 0 4px 0 var(--butter-edge);
+}
+
+.btn.howto__code-copy:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--butter-edge);
+}
+
+.btn.howto__code-copy.is-copied {
+  color: #fff;
+  background: linear-gradient(180deg, #8fd6b0, #6cc296);
+  box-shadow: 0 4px 0 #4f9f78;
+}
+
+.howto__code-status {
+  margin: 4px 0 0;
+  min-height: 0;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+}
+
+.howto__code-status:empty {
+  display: none;
+}
+
+/* 작은 세로 휴대폰(높이 700 이하): 긴 문구가 다 보이도록 조금만 촘촘하게 */
+@media (max-height: 700px) and (max-width: 599px) {
+  .howto {
+    padding: 10px;
+  }
+  .howto__dialog {
+    gap: 7px;
+    padding: 16px 14px 14px;
+  }
+  .howto__title {
+    font-size: 1.15rem;
+  }
+  .howto__dot {
+    width: 26px;
+    height: 26px;
+  }
+  .howto__card {
+    gap: 6px;
+    padding: 10px 10px 10px;
+  }
+  .howto__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+  .howto__icon-svg {
+    width: 24px;
+    height: 24px;
+  }
+  .howto__card-title {
+    font-size: 1rem;
+  }
+  .howto__lines {
+    gap: 4px;
+  }
+  .howto__lines li {
+    gap: 8px;
+    padding: 6px 10px;
+    font-size: 0.86rem;
+  }
+  .howto__btn.btn {
+    min-height: 46px;
+  }
+  .howto__code-text {
+    font-size: 1.15rem;
+  }
+}
+
+/* 세로가 짧은 화면(가로 휴대폰 등): 조금 더 촘촘하게 */
+@media (max-height: 560px) {
+  .howto {
+    padding: 8px;
+  }
+  .howto__dialog {
+    gap: 6px;
+    padding: 14px 14px 12px;
+  }
+  .howto__title {
+    font-size: 1.1rem;
+  }
+  .howto__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+  .howto__icon-svg {
+    width: 24px;
+    height: 24px;
+  }
+  .howto__lines li {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+  }
+  .howto__btn.btn {
+    min-height: 42px;
+  }
+}
+
+/* 가로로 긴 짧은 화면(가로 휴대폰): 단계 카드를 왼쪽(아이콘·제목) + 오른쪽(할 일) 두 칸으로 */
+@media (max-height: 560px) and (min-width: 600px) {
+  .howto__dialog {
+    width: min(100%, 660px);
+  }
+  .howto__card {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: auto auto 1fr;
+    align-items: center;
+    justify-items: center;
+    column-gap: 14px;
+    row-gap: 6px;
+    padding: 12px 14px;
+  }
+  .howto__lines {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: center;
+  }
+  .howto__card-title {
+    align-self: start;
+  }
+  .howto__card {
+    grid-template-rows: auto auto auto 1fr;
+  }
+  .howto__lines {
+    grid-row: 1 / span 4;
+  }
+  .howto__code {
+    grid-column: 1;
+    grid-row: 4;
+    align-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .howto,
+  .howto__dialog,
+  .howto__card.from-right,
+  .howto__card.from-left,
+  .howto__icon {
+    animation-duration: 0.01s;
+  }
+}

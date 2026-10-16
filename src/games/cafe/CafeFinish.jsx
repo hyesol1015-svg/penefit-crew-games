@@ -7,7 +7,7 @@ import { Cup } from './CupArt.jsx'
 /**
  * CafeFinish — 멍푸치노 완성 화면 (덮개 화면)
  *  - 직접 고른 컵 색 · 음료 색 · 거품 · 장식이 그대로 담긴 멍푸치노
- *  - 고른 크루가 옆에서 축하하고, 아래에 PENEFITGAME 바우처 카드
+ *  - 고른 크루가 옆에서 축하하고, 아래에 PENEGAME 바우처 카드
  *  - 밥꾸·쿠키 완성 화면과 같은 스타일(.celebrate …)을 함께 써요
  */
 const CONFETTI_COLORS = ['#FFB496', '#FFD666', '#CDEEDF', '#F9C2D0', '#C9E4FF', '#E4D4FF']

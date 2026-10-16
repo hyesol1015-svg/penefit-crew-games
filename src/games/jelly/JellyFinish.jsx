@@ -7,7 +7,7 @@ import { JellyPlate } from './JellyArt.jsx'
 /**
  * JellyFinish — 말랑젤리 완성 화면 (덮개 화면)
  *  - 꺼낸 젤리의 색·모양·개수를 그대로 접시에 담아 말랑말랑 흔들려요.
- *  - 고른 크루가 축하하고, 아래에 PENEFITGAME 바우처 카드
+ *  - 고른 크루가 축하하고, 아래에 PENEGAME 바우처 카드
  *  - 다른 게임 완성 화면과 같은 스타일(.celebrate …)을 함께 써요
  */
 const CONFETTI_COLORS = ['#FFB496', '#FFD666', '#CDEEDF', '#F9C2D0', '#C9E4FF', '#E4D4FF']

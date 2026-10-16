@@ -4,7 +4,7 @@
 React + Vite + 순수 CSS/SVG로 만들었고, 유료 API·AI API·외부 데이터베이스를 쓰지 않습니다.
 추가로 설치한 패키지도 없습니다.
 
-현재 플레이 가능한 게임: **밥꾸 스튜디오** (사료 그릇에 토퍼 파우더를 뿌리고 고기 토핑 올리기), **쿠키 베이커리** (맛 → 섞기 → 밀기 → 찍기 → 굽기 → 꾸미기 → 완성 + 바우처)
+현재 플레이 가능한 게임: **밥꾸 스튜디오** (사료 그릇에 토퍼 파우더를 뿌리고 고기 토핑 올리기), **쿠키 베이커리** (맛 → 섞기 → 밀기 → 찍기 → 굽기 → 꾸미기 → 완성 + 바우처), **멍푸치노 카페** (컵 → 맛 → 섞고 붓기 → 거품 → 꾸미기 → 완성 + 바우처)
 
 ---
 
@@ -99,6 +99,13 @@ src/
 │  │  ├─ CookieFinish.jsx        #   완성 화면 (접시 + 크루 + 바우처)
 │  │  ├─ CookieArt.jsx           #   매트·반죽·쿠키·쿠키틀·트레이 그림 (임시 SVG)
 │  │  └─ doughShape.js           #   반죽 모양 계산
+│  ├─ cafe/                      # 멍푸치노 카페 (① 컵 ~ ⑥ 완성까지 플레이 가능)
+│  │  ├─ MungpuccinoCafe.jsx     #   단계 진행·패널·버튼
+│  │  ├─ cafeData.js             #   단계, 컵 5색(밥꾸 그릇 색 재사용), 맛 6종(페네핏 파우더 재사용), 섞기·붓기·거품 기준
+│  │  ├─ MixPourStage.jsx        #   믹싱볼 섞기 + 피처로 붓기
+│  │  ├─ CafeStage.jsx           #   카페 테이블 위 컵 (거품기·꾸미기)
+│  │  ├─ CupArt.jsx              #   컵·음료·거품·장식·테이블 그림 (임시 SVG)
+│  │  └─ CafeFinish.jsx          #   완성 화면 (멍푸치노 + 크루 + 바우처)
 │  ├─ cafe/MungpuccinoCafe.jsx    # 멍푸치노 카페 (화면 틀만 연결, 다음 단계에서 구현)
 │  └─ jelly/JellyLab.jsx          # 말랑젤리 연구소 (화면 틀만 연결, 다음 단계에서 구현)
 └─ styles/
@@ -253,6 +260,19 @@ src/
 7. **Finish** — "Cookies Complete!" + "You baked something pawsome!" 접시에 직접 만든 쿠키(모양·색·장식)가 그대로 담기고, 고른 크루가 축하해요. 아래에 밥꾸와 **같은 바우처 카드**(`bapkku/VoucherCard.jsx`, 설정 `bapkku/voucher.js`)가 나와요. **Start Over / Home**.
 
 그림은 모두 임시 SVG예요. 쿠키 PNG가 생기면 `cookieData.js`의 `CUTTERS` 각 항목 `image`에 경로를 넣으면 돼요.
+
+## 5-3. 멍푸치노 카페 플레이 방법
+
+※ 게임 속 가상 펫 음료예요. 실제 반려동물 음료 레시피나 급여 안내가 아니에요.
+
+1. **Choose Cup** — Cream · Pink · Mint · Lavender · Butter Yellow 컵(밥꾸 그릇과 같은 색 팔레트). 고른 컵은 끝까지 유지돼요.
+2. **Choose Flavor** — 페네핏 파우더 6종(실제 아이콘). 음료 색이 그 맛 색으로 바뀌어요.
+3. **Mix & Pour** — 믹싱볼 안에서 원을 그리며 약 3바퀴(`MIX_TURNS`) 저으면 파우더가 녹아 색이 고르게 섞여요. 그다음 **피처를 끌어 컵 위**에 두면 기울어지며 음료가 흘러 들어가요(약 2.4초, `POUR_SECONDS`). 다른 곳에 놓으면 제자리로 돌아가요.
+4. **Add Foam** — 펫 전용 거품기(발바닥 손잡이)를 컵 위에서 누르고 움직이면 크림색 거품이 쌓이고 출렁여요. 빙글빙글 돌리면 위에 소용돌이 무늬가 생겨요(약 2~4초, `FOAM`).
+5. **Decorate** — 장식 4종(Paw Print · Heart · Star · Dots, 쿠키 게임 장식 그림 재사용) + 맛과 어울리는 파스텔 4색. 거품 윗면을 누르면 올라가요. **Undo / Clear Decorations**. 1개 이상이면 **Finish!**
+6. **Finish** — "Puppuccino Complete!" + "You made something pawsome!" 직접 만든 멍푸치노(컵·음료·거품·장식) + 크루 축하 + 같은 바우처 카드(`bapkku/voucher.js`). **Start Over / Home**.
+
+컵 PNG가 생기면 `cafeData.js`의 `CUPS` 각 항목 `image`에 경로를 넣으면 돼요. 이미지가 없거나 경로가 틀려도 임시 그림으로 계속 플레이돼요.
 
 ## 6. 쉽게 고칠 수 있는 부분
 

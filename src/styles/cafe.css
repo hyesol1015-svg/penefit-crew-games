@@ -1,0 +1,566 @@
+/* ==========================================================
+ * cafe.css — 멍푸치노 카페 게임 화면
+ *
+ * 화면 배치는 공통 shell.css, 진행 표시·말풍선·선택 카드·완성 화면 같은 공통 게임 UI는
+ * bapkku.css 를 함께 써요. 카페에만 필요한 부분은 '.cafe' 로 맞춰요. (다른 게임 파일은 바꾸지 않아요)
+ * ========================================================== */
+
+/* ── 공통 게임 UI를 카페 화면에도 적용 ── */
+.cafe .guide__bubble {
+  align-self: center;
+  margin: 0 0 6px;
+  max-width: 100%;
+  white-space: normal;
+  word-break: keep-all;
+  text-align: left;
+  border-radius: 18px;
+  animation: none;
+}
+
+.cafe .guide__bubble::after {
+  left: -5px;
+  bottom: 12px;
+  transform: rotate(45deg);
+}
+
+.cafe .shell__status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cafe .btn--primary.is-ready {
+  animation:
+    jelly-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    ready-glow 1.8s ease-in-out 0.6s infinite;
+}
+
+.cafe .chip__name {
+  white-space: normal;
+  overflow: visible;
+  text-align: center;
+  line-height: 1.1;
+}
+
+@media (min-width: 768px) and (orientation: portrait) {
+  .cafe .panel--right {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 768px) and (min-height: 600px) {
+  .cafe .meter {
+    width: min(100%, 620px);
+    margin: 0 auto;
+  }
+}
+
+.cafe-meter {
+  justify-content: center;
+}
+
+.cafe .recipe__note {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+/* ==========================================================
+ * 무대
+ * ========================================================== */
+.cafe-scene {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 0 2%;
+  animation: cafe-scene-in 0.45s ease both; /* 단계가 바뀔 때 부드럽게 */
+}
+
+@keyframes cafe-scene-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.cafe-svg {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 520px;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cafe-svg:focus {
+  outline: none;
+}
+
+.cafe-svg:focus-visible {
+  filter: drop-shadow(0 0 6px var(--peach-deep));
+}
+
+/* 손가락으로 젓기·붓기·거품·꾸미기 할 때 화면이 대신 스크롤되지 않게 */
+.cafe-svg.is-interactive,
+.cafe-svg.pour-svg,
+.cafe-svg.is-foam,
+.cafe-svg.is-decorate {
+  touch-action: none;
+}
+
+.cafe-svg.is-interactive,
+.cafe-svg.pour-svg {
+  cursor: grab;
+}
+
+.cafe-svg.is-stirring,
+.cafe-svg.pour-svg.is-dragging {
+  cursor: grabbing;
+}
+
+.cafe-svg.is-foam {
+  cursor: grab;
+}
+
+.cafe-svg.is-decorate {
+  cursor: pointer;
+}
+
+/* 컵이 놓일 때 '퐁' */
+.cup-pop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: cup-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cup-pop {
+  from {
+    transform: scale(0.85) translateY(-14px);
+    opacity: 0;
+  }
+}
+
+/* 거품이 몽글몽글 출렁여요 */
+.cup-foam {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: foam-jiggle 2.6s ease-in-out infinite;
+}
+
+.cafe-svg.is-whipping .cup-foam {
+  animation-duration: 0.5s;
+}
+
+@keyframes foam-jiggle {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.012, 1.04);
+  }
+}
+
+/* 안내 점선 */
+.foam-target,
+.mix-hint-ring,
+.pour-target ellipse,
+.pour-target path {
+  animation: cafe-dash 0.9s linear infinite;
+}
+
+@keyframes cafe-dash {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+
+/* 거품기 */
+.whisk {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.whisk.is-active {
+  animation: whisk-buzz 0.18s linear infinite;
+}
+
+.whisk.is-resting {
+  animation: whisk-wait 1.6s ease-in-out infinite;
+}
+
+@keyframes whisk-buzz {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes whisk-wait {
+  50% {
+    transform: translateY(-5px) rotate(-6deg);
+  }
+}
+
+/* 피처: 손을 떼면 제자리로 부드럽게, 기울기도 부드럽게 */
+.pitcher-move {
+  transition: transform 0.35s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.pitcher-move.is-held {
+  transition: none;
+}
+
+.pitcher-tilt {
+  transition: transform 0.25s ease;
+}
+
+.pour-svg {
+  animation: cafe-scene-in 0.5s ease both;
+}
+
+.pour-stream__shine {
+  animation: pour-flow 0.35s linear infinite;
+}
+
+@keyframes pour-flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.pour-splash {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pour-splash 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes pour-splash {
+  to {
+    transform: scale(1.3, 1.1);
+  }
+}
+
+/* 장식이 '톡' + 반짝 */
+.cafe-decor.is-new {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cafe-decor-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cafe-decor-pop {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+}
+
+.cafe-sparkle path {
+  pointer-events: none;
+  animation: cafe-spark 0.7s ease-out both;
+}
+
+@keyframes cafe-spark {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sx), var(--sy)) scale(1.1);
+  }
+}
+
+/* 맛 이름표 */
+.cafe-flavor-tag {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px 4px 5px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2.5px solid var(--powder);
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  color: var(--ink);
+  box-shadow: 0 3px 0 #f0dfcb;
+  animation: jelly-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cafe-flavor-tag small {
+  margin-left: 4px;
+  font-family: var(--font-title);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+.cafe-flavor-tag .powder-icon {
+  width: 30px;
+  height: 30px;
+}
+
+/* ==========================================================
+ * 패널
+ * ========================================================== */
+.cup-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.chip--cup {
+  flex-direction: column;
+  gap: 2px;
+  min-height: 74px;
+  padding: 5px 2px;
+}
+
+.chip__cup {
+  display: block;
+  width: 40px;
+  height: 44px;
+  overflow: visible;
+}
+
+.chip--cup .chip__name {
+  font-size: 0.78rem;
+}
+
+.cafe-progress {
+  align-items: stretch;
+}
+
+.cafe-progress__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cafe-progress__title {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 1rem;
+  text-align: center;
+  color: var(--ink);
+}
+
+.cafe-decor-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cafe .chip--decor {
+  flex-direction: column;
+  gap: 2px;
+  min-height: 66px;
+  padding: 5px 2px;
+}
+
+.cafe .chip__decor {
+  display: block;
+  width: 38px;
+  height: 38px;
+  overflow: visible;
+}
+
+.cafe .chip--decor .chip__name {
+  font-size: 0.8rem;
+}
+
+.cafe .icing-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cafe .icing-swatch {
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: var(--icing);
+  box-shadow:
+    0 0 0 1.5px #ecdcc8,
+    0 3px 0 #ecdcc8;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  touch-action: manipulation;
+}
+
+.cafe .icing-swatch.is-active {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow:
+    0 0 0 3px #f09aaa,
+    0 4px 0 #f3c2cb;
+}
+
+/* ==========================================================
+ * 완성 화면 (밥꾸·쿠키 완성 화면 스타일을 함께 써요)
+ * ========================================================== */
+.cafe-finish__lead {
+  margin: 4px 0 0;
+}
+
+.cafe-finish__cup {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.cafe-finish__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 230px;
+  overflow: visible;
+  animation: card-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
+}
+
+.cafe-finish__sparkle {
+  position: absolute;
+  font-size: 16px;
+  line-height: 1;
+  color: #ffc23a;
+  text-shadow: 0 0 6px rgba(255, 214, 102, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  animation: cafe-twinkle 1.8s ease-in-out infinite;
+}
+
+@keyframes cafe-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.1) rotate(20deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .cafe-finish .celebrate__plate {
+    max-width: 290px;
+  }
+  .cafe-finish__svg {
+    max-height: 170px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .cafe-finish__svg {
+    max-height: 150px;
+  }
+}
+
+/* ==========================================================
+ * 화면 크기별 보정
+ * ========================================================== */
+@media (orientation: landscape) and (max-width: 1279px) {
+  .cup-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .cup-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .chip__cup {
+    width: 50px;
+    height: 54px;
+  }
+  .chip--cup .chip__name {
+    font-size: 0.92rem;
+  }
+}
+
+@media (orientation: portrait) and (max-height: 720px) {
+  .cafe .shell__dock {
+    max-height: 38dvh;
+  }
+  .cafe .shell__status {
+    gap: 4px;
+  }
+  .cafe .stepbar__label {
+    display: none;
+  }
+  .cafe .stepbar__dot {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+  .cafe .stepbar__list::before {
+    top: 10px;
+  }
+  .cafe .stage__hint {
+    margin-top: 0;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+  .cafe .meter__bar {
+    height: 12px;
+  }
+  .cafe .stage__count {
+    padding: 3px 9px;
+    font-size: 0.72rem;
+  }
+  .cafe .panel-help {
+    display: none;
+  }
+  .cafe .powder-panel__tools {
+    order: -1;
+  }
+  .cafe .tool-btn {
+    min-height: 34px;
+    font-size: 0.82rem;
+  }
+  .chip--cup {
+    min-height: 62px;
+  }
+  .chip__cup {
+    width: 32px;
+    height: 36px;
+  }
+  .cafe .icing-swatch {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cafe-scene,
+  .cup-pop,
+  .cup-foam,
+  .foam-target,
+  .mix-hint-ring,
+  .pour-target ellipse,
+  .pour-target path,
+  .whisk.is-active,
+  .whisk.is-resting,
+  .pour-svg,
+  .pour-stream__shine,
+  .pour-splash,
+  .cafe-decor.is-new,
+  .cafe-sparkle path,
+  .cafe-finish__svg,
+  .cafe-finish__sparkle {
+    animation-duration: 0.01s;
+    animation-iteration-count: 1;
+  }
+}

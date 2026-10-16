@@ -1,5 +1,6 @@
 import { memo, useEffect, useId, useRef, useState } from 'react'
-import { FOOD_AREA, TOPPERS } from './bapkkuData.js'
+import { FOOD_AREA, MEATS, TOPPERS } from './bapkkuData.js'
+import { MeatDefs, MeatShape } from './MeatArt.jsx'
 
 /* ─────────────────────────────────────────────
  * 사료 알갱이(키블) 재료
@@ -229,6 +230,65 @@ const FallingBurst = memo(function FallingBurst({ burst }) {
   )
 })
 
+/**
+ * MeatLayer — 파우더 위에 올린 고기 토핑들
+ *  - 뒤쪽(위)에 있는 조각부터 그려서 앞쪽 조각이 자연스럽게 겹쳐 보여요.
+ *  - 그림자를 먼저 깔아서 사료·파우더 위에 '올라앉은' 느낌을 줘요.
+ *  - onPiecePress 가 있으면 조각을 눌러 고르고 끌어서 옮길 수 있어요.
+ */
+function MeatLayer({ meats, uid, selectedId, liftedId, animate, onPiecePress }) {
+  const sorted = [...meats].sort((a, b) => a.y - b.y)
+  // 가장 최근에 올린 조각만 '톡' 떨어지는 연출 (id는 올릴 때마다 커져요)
+  const newestId = meats.reduce((max, m) => Math.max(max, m.id), -1)
+  return (
+    <g className="meats">
+      {sorted.map((m) => {
+        const meat = MEATS.find((t) => t.id === m.meatId)
+        if (!meat) return null
+        const lifted = liftedId === m.id
+        return (
+          <g key={m.id} transform={`translate(${m.x} ${m.y})`}>
+            {/* 바닥 그림자 (조각을 들면 옅고 넓어져요) */}
+            <ellipse
+              cx="1.5"
+              cy={8 * m.scale}
+              rx={14 * m.scale * (lifted ? 1.1 : 1)}
+              ry={3.6 * m.scale}
+              fill="#3a1d0a"
+              opacity={lifted ? 0.18 : 0.34}
+              filter={`url(#${uid}-meatShadow)`}
+            />
+            {selectedId === m.id && (
+              <ellipse
+                className="meat-ring"
+                cx="0"
+                cy="1"
+                rx={19 * m.scale}
+                ry={14 * m.scale}
+                fill="#FFFFFF"
+                fillOpacity="0.18"
+                stroke="#FFFFFF"
+                strokeWidth="1.6"
+                strokeDasharray="4 3"
+              />
+            )}
+            <g transform={`rotate(${m.rot}) scale(${m.flip ? -m.scale : m.scale} ${m.scale})`}>
+              <g
+                className={`meat-piece ${animate && m.id === newestId && !lifted ? 'meat-piece--drop' : ''} ${lifted ? 'is-lifted' : ''} ${onPiecePress ? 'is-movable' : ''}`}
+                onPointerDown={onPiecePress ? (event) => onPiecePress(event, m) : undefined}
+              >
+                {/* 누르기 쉽도록 보이지 않는 넉넉한 영역 */}
+                {onPiecePress && <ellipse cx="0" cy="1" rx="17" ry="13" fill="transparent" />}
+                <MeatShape meat={meat} prefix={`${uid}-meat`} />
+              </g>
+            </g>
+          </g>
+        )
+      })}
+    </g>
+  )
+}
+
 // 그릇 몸통의 물방울 무늬 위치
 const BODY_DOTS = [
   [86, 132], [124, 146], [160, 150], [196, 146], [234, 132],
@@ -257,6 +317,11 @@ function isInsideBowl(x, y) {
  *   bursts      : 뿌려진 파우더 묶음들 (bapkkuData.js 의 createPowderBurst 결과)
  *   onSprinkle  : (x, y) => void  — 그릇을 누르거나 문지른 SVG 좌표를 알려 줌
  *   interactive : false면 완성 화면처럼 보기 전용
+ *   rub         : false면 누른 채 문질러도 한 번만 알려요 (토핑 단계)
+ *   meats       : 올린 고기 토핑들 (bapkkuData.js 의 createMeatPiece 결과)
+ *   selectedMeat: 지금 고른 토핑 조각 id (점선 테두리 표시)
+ *   onMeatSelect: (조각 id) => void — 조각을 눌렀을 때
+ *   onMeatMove  : (조각 id, x, y) => void — 조각을 끌어 옮길 때 (SVG 좌표)
  *   label       : 화면 읽기 프로그램용 설명
  *
  * 클릭(터치)은 바깥 <svg>가 직접 받아 좌표로 '그릇 영역인지' 판정합니다.
@@ -269,9 +334,16 @@ function Bowl({
   bursts = [],
   onSprinkle,
   interactive = true,
+  rub = true,
+  meats = [],
+  selectedMeat = null,
+  onMeatSelect,
+  onMeatMove,
   label,
 }) {
   const svgRef = useRef(null)
+  const meatDrag = useRef(null) // 끌고 있는 토핑 조각 정보
+  const [liftedId, setLiftedId] = useState(null)
   const isDrawing = useRef(false)
   const lastPoint = useRef(null)
   // 한 화면에 그릇이 2개 있어도 SVG 안의 id가 겹치지 않도록 고유 접두어 사용
@@ -330,9 +402,27 @@ function Bowl({
     onSprinkle(point.x, point.y)
   }
 
+  // 토핑 조각을 누르면: 고르고, 끌기 시작 (그릇을 누른 것으로 치지 않아요)
+  const handlePiecePress = (event, piece) => {
+    event.stopPropagation()
+    event.preventDefault()
+    const point = toSvgPoint(event)
+    if (!point) return
+    svgRef.current?.setPointerCapture?.(event.pointerId)
+    meatDrag.current = { id: piece.id, offX: point.x - piece.x, offY: point.y - piece.y }
+    setLiftedId(piece.id)
+    onMeatSelect?.(piece.id)
+  }
+
   // 누른 채로 움직이면 일정 거리마다 한 번씩 알리기
   const handlePointerMove = (event) => {
-    if (!isDrawing.current) return
+    if (meatDrag.current) {
+      const point = toSvgPoint(event)
+      const d = meatDrag.current
+      if (point) onMeatMove?.(d.id, point.x - d.offX, point.y - d.offY)
+      return
+    }
+    if (!isDrawing.current || !rub) return
     const point = toSvgPoint(event)
     if (!point) return
     const last = lastPoint.current
@@ -343,6 +433,10 @@ function Bowl({
   }
 
   const stopDrawing = () => {
+    if (meatDrag.current) {
+      meatDrag.current = null
+      setLiftedId(null)
+    }
     isDrawing.current = false
     lastPoint.current = null
   }
@@ -438,6 +532,11 @@ function Bowl({
           <rect width="8" height="16" fill="#FFC9B0" opacity="0.7" />
           <rect width="16" height="8" fill="#FFC9B0" opacity="0.7" />
         </pattern>
+        {/* 고기 토핑 그림·그림자 */}
+        <MeatDefs prefix={`${uid}-meat`} />
+        <filter id={`${uid}-meatShadow`} x="-30%" y="-80%" width="160%" height="260%">
+          <feGaussianBlur stdDeviation="1.3" />
+        </filter>
         {/* 그릇 안쪽(입구 타원 + 입구 위 공간)으로 잘라서 사료가 그릇 밖으로 안 나가게 */}
         <clipPath id={`${uid}-inside`}>
           <ellipse cx="160" cy="92" rx="116" ry="32" />
@@ -509,6 +608,17 @@ function Bowl({
                   <LandedBurst key={b.id} burst={b} animate={interactive} uid={uid} />
                 ))}
               </g>
+              {/* 파우더 위에 올린 고기 토핑 (사료 더미보다 살짝 솟아도 보이도록 더미 잘라내기 밖에) */}
+              {meats.length > 0 && (
+                <MeatLayer
+                  meats={meats}
+                  uid={uid}
+                  selectedId={interactive ? selectedMeat : null}
+                  liftedId={liftedId}
+                  animate={interactive}
+                  onPiecePress={interactive && onMeatMove ? handlePiecePress : undefined}
+                />
+              )}
             </g>
           )}
         </g>

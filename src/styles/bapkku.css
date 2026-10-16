@@ -1431,3 +1431,171 @@
     text-align: left;
   }
 }
+
+/* ==========================================================
+ * ④ 고기 토핑 (Salmon · Pork · Chicken · Beef)
+ * ========================================================== */
+/* 휴대폰·아이패드: 4종을 한 줄에 */
+.meat-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chip--meat {
+  flex-direction: column;
+  gap: 2px;
+  min-height: 74px;
+  padding: 6px 3px 5px;
+  touch-action: none; /* 카드를 끌어서 그릇에 놓을 수 있게 (화면이 대신 스크롤되지 않게) */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.chip--meat.is-active {
+  border-color: var(--meat);
+}
+
+.chip__meat {
+  display: block;
+  flex: none;
+  width: 46px;
+  height: 38px;
+  pointer-events: none;
+}
+
+.meat-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.chip--meat .chip__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.1;
+}
+
+.chip--meat .chip__name {
+  font-size: 0.84rem;
+}
+
+/* 짧은 설명은 좁은 칸에서는 숨기고 노트북에서만 보여요 */
+.chip--meat .chip__sub {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .meat-grid {
+    grid-template-columns: 1fr;
+  }
+  .chip--meat {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 66px;
+    padding: 6px 12px;
+  }
+  .chip__meat {
+    width: 58px;
+    height: 48px;
+  }
+  .chip--meat .chip__text {
+    align-items: flex-start;
+  }
+  .chip--meat .chip__name {
+    font-size: 0.98rem;
+  }
+  .chip--meat .chip__sub {
+    display: block;
+    letter-spacing: 0.02em;
+    font-family: var(--font-body, inherit);
+    font-size: 0.72rem;
+    white-space: normal;
+  }
+}
+
+/* 세로가 짧은 휴대폰: 카드를 조금 낮게 */
+@media (orientation: portrait) and (max-height: 720px) {
+  .chip--meat {
+    min-height: 60px;
+  }
+  .chip__meat {
+    width: 40px;
+    height: 32px;
+  }
+}
+
+/* 그릇 위 고기 조각 */
+.meat-piece {
+  transform-box: fill-box;
+  transform-origin: 50% 80%;
+  transition: transform 0.15s ease;
+}
+
+.meat-piece.is-movable {
+  cursor: grab;
+}
+
+.meat-piece.is-lifted {
+  cursor: grabbing;
+  transform: translateY(-3px) scale(1.08);
+}
+
+/* 막 올린 조각: 위에서 '톡' 떨어져 살짝 튕겨요 */
+.meat-piece--drop {
+  animation: meat-drop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes meat-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 고른 조각의 점선 테두리 */
+.meat-ring {
+  pointer-events: none;
+  animation: meat-ring 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes meat-ring {
+  from {
+    stroke-opacity: 0.6;
+  }
+  to {
+    stroke-opacity: 1;
+  }
+}
+
+/* 카드를 끌 때 따라다니는 그림 (body 바로 아래에 그려져요) */
+.meat-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-6deg) scale(1.05);
+  filter: drop-shadow(0 6px 6px rgba(90, 50, 20, 0.25));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meat-piece--drop,
+  .meat-ring {
+    animation: none;
+  }
+}
+
+/* 떨어지는 연출(가루·사료 알갱이)은 눌리지 않게 — 아래의 토핑 조각을 가리지 않도록 */
+.bowl-svg .falling,
+.bowl-svg .drops {
+  pointer-events: none;
+}

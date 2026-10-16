@@ -5,6 +5,8 @@ import Scoop from './Scoop.jsx'
 import PowderShaker from './PowderShaker.jsx'
 import PowderIcon from './PowderIcon.jsx'
 import { MeatCardArt } from './MeatArt.jsx'
+import VoucherCard from './VoucherCard.jsx'
+import { hasVoucher } from './voucher.js'
 import StepBar from './StepBar.jsx'
 import GameShell from '../../components/GameShell.jsx'
 import CrewSprite from '../../components/CrewSprite.jsx'
@@ -702,10 +704,13 @@ const STAR_MESSAGES = ['', 'Looks yummy!', 'So delicious!', 'Top Bowl Chef!']
 function CelebrationModal({ crew, bowl, bursts, meats, count, stars, usedToppers, usedMeats, onRemake, onHome }) {
   const powderText = usedToppers.map((t) => t.name).join(', ')
   const meatText = usedMeats.map((m) => m.name).join(', ')
+  const showVoucher = hasVoucher() // voucher.js 에서 enabled: false 면 카드 없이 예전 화면 그대로
 
   return (
     <div className="celebrate" role="dialog" aria-modal="true" aria-labelledby="celebrate-title">
-      <div className="celebrate__rays" aria-hidden="true" />
+      <div className="celebrate__bg" aria-hidden="true">
+        <div className="celebrate__rays" />
+      </div>
       <div className="celebrate__confetti" aria-hidden="true">
         {CONFETTI.map((c, i) => (
           <span
@@ -721,56 +726,64 @@ function CelebrationModal({ crew, bowl, bursts, meats, count, stars, usedToppers
         ))}
       </div>
 
-      <div className="celebrate__card">
+      <div className={`celebrate__card ${showVoucher ? 'has-voucher' : ''}`}>
         <h2 id="celebrate-title" className="ribbon">
           Bowl Complete!
         </h2>
 
-        <div className="celebrate__stars" aria-label={`${stars} of 3 stars`}>
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className={`big-star ${i < stars ? 'is-on' : ''}`}
-              style={{ animationDelay: `${0.35 + i * 0.18}s` }}
-              aria-hidden="true"
-            >
-              ★
-            </span>
-          ))}
-        </div>
-        <p className="celebrate__grade">{STAR_MESSAGES[stars]}</p>
-
-        <div className="celebrate__plate">
-          <Bowl bowl={bowl} fill={1} bursts={bursts} meats={meats} interactive={false} />
-          {/* 함께 만든 크루가 옆에서 축하해 줘요 */}
-          <div className="celebrate__cheer">
-            <span className="celebrate__say">{crew.name}: Yum!</span>
-            <span className="celebrate__crew">
-              <CrewSprite crew={crew} />
-            </span>
+        {/* 왼쪽(휴대폰은 위): 완성된 밥꾸 결과 */}
+        <div className="celebrate__result">
+          <div className="celebrate__stars" aria-label={`${stars} of 3 stars`}>
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className={`big-star ${i < stars ? 'is-on' : ''}`}
+                style={{ animationDelay: `${0.35 + i * 0.18}s` }}
+                aria-hidden="true"
+              >
+                ★
+              </span>
+            ))}
           </div>
+          <p className="celebrate__grade">{STAR_MESSAGES[stars]}</p>
+
+          <div className="celebrate__plate">
+            <Bowl bowl={bowl} fill={1} bursts={bursts} meats={meats} interactive={false} />
+            {/* 함께 만든 크루가 옆에서 축하해 줘요 */}
+            <div className="celebrate__cheer">
+              <span className="celebrate__say">{crew.name}: Yum!</span>
+              <span className="celebrate__crew">
+                <CrewSprite crew={crew} />
+              </span>
+            </div>
+          </div>
+
+          <p className="celebrate__desc">
+            A <b>{bowl.name}</b> bowl with <b>{powderText}</b> powder
+            {meatText && (
+              <>
+                {' '}
+                and <b>{meatText}</b>
+              </>
+            )}
+            .
+            <br />
+            <b>{count}</b> sprinkles of love!
+          </p>
         </div>
 
-        <p className="celebrate__desc">
-          A <b>{bowl.name}</b> bowl with <b>{powderText}</b> powder
-          {meatText && (
-            <>
-              {' '}
-              and <b>{meatText}</b>
-            </>
-          )}
-          .
-          <br />
-          <b>{count}</b> sprinkles of love!
-        </p>
+        {/* 오른쪽(휴대폰은 아래): 선물 바우처 + 버튼 */}
+        <div className="celebrate__reward">
+          {showVoucher && <VoucherCard />}
 
-        <div className="celebrate__actions">
-          <button type="button" className="btn btn--primary" onClick={onRemake}>
-            Start Over
-          </button>
-          <button type="button" className="btn btn--ghost" onClick={onHome}>
-            Home
-          </button>
+          <div className="celebrate__actions">
+            <button type="button" className="btn btn--primary" onClick={onRemake}>
+              Start Over
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={onHome}>
+              Home
+            </button>
+          </div>
         </div>
       </div>
     </div>

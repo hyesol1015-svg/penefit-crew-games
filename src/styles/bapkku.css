@@ -375,6 +375,7 @@
 .celebrate__card {
   position: relative;
   display: flex;
+  margin: auto; /* 화면보다 길어져도 위쪽이 잘리지 않고 완성 화면 안에서만 스크롤돼요 */
   flex-direction: column;
   align-items: center;
   gap: 6px;
@@ -555,7 +556,8 @@
   margin-top: 10px;
 }
 
-/* 흩날리는 색종이 */
+/* 흩날리는 색종이 · 햇살 (화면 밖으로 삐져나와 스크롤을 만들지 않게 잘라 둬요) */
+.celebrate__bg,
 .celebrate__confetti {
   position: absolute;
   inset: 0;
@@ -1598,4 +1600,323 @@
 .bowl-svg .falling,
 .bowl-svg .drops {
   pointer-events: none;
+}
+
+/* ==========================================================
+ * 완성 화면 — 선물 바우처 카드 (VoucherCard.jsx, 설정: voucher.js)
+ * ========================================================== */
+.celebrate__result,
+.celebrate__reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.voucher {
+  position: relative;
+  width: 100%;
+  max-width: 300px; /* 완성된 밥꾸보다 커 보이지 않게 */
+  margin-top: 30px; /* 선물 상자가 티켓 위에 걸쳐 앉을 자리 */
+  filter: drop-shadow(0 5px 0 #f3cfa6) drop-shadow(0 10px 14px rgba(196, 120, 70, 0.18));
+  animation: voucher-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s both;
+}
+
+@keyframes voucher-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.85);
+  }
+}
+
+/* 티켓 위의 선물 상자 + 반짝임 */
+.voucher__gift {
+  position: absolute;
+  z-index: 1;
+  top: -34px;
+  left: 50%;
+  width: 62px;
+  height: 54px;
+  margin-left: -31px;
+  pointer-events: none;
+}
+
+.voucher__box {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: gift-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s both;
+}
+
+@keyframes gift-pop {
+  from {
+    transform: scale(0.3) rotate(-12deg);
+    opacity: 0;
+  }
+}
+
+/* 뚜껑이 톡 열려서 살짝 기운 채로 있어요 */
+.voucher__lid {
+  transform-box: fill-box;
+  transform-origin: 20% 100%;
+  animation: lid-open 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1.25s both;
+}
+
+@keyframes lid-open {
+  to {
+    transform: translate(-2px, -7px) rotate(-14deg);
+  }
+}
+
+.voucher__sparkle {
+  position: absolute;
+  font-size: 15px;
+  line-height: 1;
+  color: #ffc23a;
+  text-shadow: 0 0 6px rgba(255, 214, 102, 0.9);
+  opacity: 0;
+  animation: twinkle 1.7s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.1) rotate(20deg);
+  }
+}
+
+/* 쿠폰 티켓: 양옆 반달 홈 + 안쪽 점선 테두리 */
+.voucher__ticket {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 27px 16px 13px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 85% 18%, rgba(255, 255, 255, 0.75) 0 10%, transparent 34%),
+    linear-gradient(160deg, #fff8df 0%, var(--butter) 55%, var(--peach) 100%);
+  -webkit-mask:
+    radial-gradient(circle 10px at 0 58%, transparent 96%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 58%, transparent 96%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 10px at 0 58%, transparent 96%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 10px at 100% 58%, transparent 96%, #000) right / 51% 100% no-repeat;
+}
+
+.voucher__ticket::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 2px dashed rgba(233, 143, 108, 0.6);
+  border-radius: 15px;
+  pointer-events: none;
+}
+
+.voucher__title {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 1.12rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #c9663f;
+}
+
+/* 크고 선명한 바우처 코드 (눌러서 직접 선택할 수도 있어요) */
+.voucher__code-box {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 5px 8px 7px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 2px var(--butter-deep),
+    0 3px 0 rgba(232, 176, 63, 0.35);
+  cursor: text;
+}
+
+.voucher__label {
+  font-family: var(--font-head);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.voucher__code {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--font-title);
+  font-size: clamp(1.35rem, 6.4vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--ink);
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.voucher__code::selection {
+  background: var(--butter-deep);
+}
+
+.voucher__code:focus-visible {
+  outline: 3px solid var(--peach-deep);
+  outline-offset: 2px;
+}
+
+.voucher__desc {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+
+/* 복사 버튼: 피치색, 복사 후엔 민트색 + 체크 */
+.btn.voucher__copy {
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 50px;
+  font-size: 1.06rem;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(180, 90, 60, 0.4);
+  background: linear-gradient(180deg, #ffad8c 0%, #f5916c 55%, #ec7f5a 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 5px 0 #cf6b48,
+    0 9px 14px rgba(233, 143, 108, 0.3);
+}
+
+.btn.voucher__copy:not(:disabled):active {
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 1px 0 #cf6b48;
+}
+
+.btn.voucher__copy.is-copied {
+  text-shadow: 0 2px 0 rgba(50, 120, 85, 0.4);
+  background: linear-gradient(180deg, #86cfa6 0%, #5fb386 55%, #4fa576 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 5px 0 #3b8460,
+    0 9px 14px rgba(76, 154, 114, 0.3);
+}
+
+.voucher__check {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  animation: big-star-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* 복사가 안 될 때만 보이는 안내 */
+.voucher__status {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #b0583a;
+}
+
+.voucher__status:empty {
+  display: none;
+}
+
+/* 화면 읽기 프로그램에만 들리는 안내 */
+.voucher__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.celebrate__card.has-voucher .celebrate__actions {
+  margin-top: 14px;
+}
+
+/* 휴대폰: 바우처가 들어가도 덜 길어지게 그릇 영역을 조금 줄여요 */
+@media (max-width: 767px) {
+  .celebrate__card.has-voucher {
+    gap: 4px;
+    padding-bottom: 18px;
+  }
+  .celebrate__card.has-voucher .celebrate__plate {
+    max-width: 290px;
+  }
+  .celebrate__card.has-voucher .btn {
+    min-height: 50px;
+  }
+  .celebrate__card.has-voucher .celebrate__actions {
+    gap: 12px;
+  }
+}
+
+/* 가로로 넓은 화면(노트북·가로 아이패드·가로 휴대폰): 왼쪽 밥꾸, 오른쪽 바우처 */
+@media (min-width: 700px) and (orientation: landscape) {
+  .celebrate__card.has-voucher {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: 26px;
+    max-width: 740px;
+    padding: 42px 28px 24px;
+  }
+  .celebrate__card.has-voucher .celebrate__reward {
+    gap: 4px;
+  }
+}
+
+/* 가로 휴대폰처럼 세로가 아주 짧을 때 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .celebrate__card.has-voucher .celebrate__plate {
+    max-width: 250px;
+  }
+  .celebrate__card.has-voucher .big-star {
+    font-size: 1.8rem;
+  }
+  .celebrate__card.has-voucher .big-star:nth-child(2) {
+    font-size: 2.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voucher,
+  .voucher__box,
+  .voucher__lid,
+  .voucher__check {
+    animation-duration: 0.01s;
+    animation-delay: 0s;
+  }
+  .voucher__sparkle {
+    animation: none;
+    opacity: 0.8;
+  }
 }

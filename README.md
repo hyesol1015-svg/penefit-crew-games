@@ -219,6 +219,11 @@ src/
      `'/assets/meats/salmon.png'`처럼 경로를 넣으면 카드와 그릇 위가 모두 PNG로 바뀌어요. (배경 투명 PNG 권장)
 5. **완성** — "Bowl Complete!" 화면에 그릇·사료·파우더·고기 토핑과 고른 크루가 함께 나와요.
    **Start Over**는 ① 그릇 단계부터 새로 시작, **Home**은 메인 화면으로 가요.
+   - 완성 화면에는 선물 상자와 함께 **바우처 카드**(코드 `PENEFITGAME`)가 나타나요.
+     **Copy Voucher Code**를 누르면 코드가 복사되고 버튼이 **Copied!**(체크 표시)로 바뀌어요.
+     복사가 안 되는 환경이면 코드가 자동으로 선택되어 직접 복사(Ctrl+C / 길게 누르기)할 수 있어요.
+   - 바우처 코드·문구는 `src/games/bapkku/voucher.js` 한 곳에서 바꿔요. `enabled: false`면 카드가 사라져요.
+     (할인율·유효기간·최소 금액·구매 링크는 아직 넣지 않았어요)
 
 노트북 화면에서는 왼쪽에 '오늘의 레시피' 카드가 나와 지금 할 일을 알려 줘요.
 
@@ -231,6 +236,7 @@ src/
 | 그릇 색 추가/변경 | `src/games/bapkku/bapkkuData.js` → `BOWLS` |
 | 토퍼 종류·색 추가 | `bapkkuData.js` → `TOPPERS` |
 | 별점 기준 | `bapkkuData.js` → `POWDER_MIN`, `STAR_STEPS`, `GOAL` |
+| 완성 화면 바우처 코드·문구 | `src/games/bapkku/voucher.js` → `VOUCHER` |
 | 고기 토핑 이름·이미지 | `bapkkuData.js` → `MEATS` (그림: `MeatArt.jsx`) |
 | 한 번에 뿌려지는 알갱이 수·퍼짐 | `bapkkuData.js` → `createPowderBurst` |
 | 게임 카드 이름·설명·오픈 여부 | `src/games/gameList.js` |

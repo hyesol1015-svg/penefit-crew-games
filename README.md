@@ -257,6 +257,8 @@ src/
    - 완성 화면에는 선물 상자와 함께 **25% OFF Voucher 카드**(코드 `PENEGAME`, "Use this code on Shopee SG.")가 나타나요.
      **Copy Code**를 누르면 `PENEGAME`이 복사되고 버튼이 **Copied!**(체크 표시)로 바뀌어요.
      복사가 안 되는 환경이면 코드가 자동으로 선택되어 직접 복사(Ctrl+C / 길게 누르기)할 수 있어요.
+   - 그 아래 **Shop on Shopee SG** 버튼은 Shopee SG 제품 페이지를 새 탭으로 열어요. (주소: `voucher.js` 의 `SHOP_URL`)
+     코드는 자동으로 적용되지 않아서, 카드에 "직접 복사해서 결제 화면에 입력하라"는 안내가 함께 나와요.
    - **How to Use**를 누르면 "How to use your voucher" 3단계 안내 창이 열려요. (`bapkku/VoucherHowTo.jsx`)
      ① Add 1 Palette Powder 45g to Cart → ② Enter the Secret Code and Apply(코드 박스 + **Copy** 버튼) → ③ Select Your Voucher & Check Out
      Back / Next로 넘기고(휴대폰은 좌우로 밀기도 가능), 마지막 단계의 **Got it!**·X·바깥·Esc로 닫혀요.
@@ -316,7 +318,7 @@ src/
 | 그릇 색 추가/변경 | `src/games/bapkku/bapkkuData.js` → `BOWLS` |
 | 토퍼 종류·색 추가 | `bapkkuData.js` → `TOPPERS` |
 | 별점 기준 | `bapkkuData.js` → `POWDER_MIN`, `STAR_STEPS`, `GOAL` |
-| 완성 화면 바우처 코드·문구·사용 방법 단계 | `src/games/bapkku/voucher.js` → `VOUCHER` (`steps`) |
+| 완성 화면 바우처 코드·문구·사용 방법 단계·Shopee 링크 | `src/games/bapkku/voucher.js` → `VOUCHER` (`steps`), `SHOP_URL` |
 | 고기 토핑 이름·이미지 | `bapkkuData.js` → `MEATS` (그림: `MeatArt.jsx`) |
 | 한 번에 뿌려지는 알갱이 수·퍼짐 | `bapkkuData.js` → `createPowderBurst` |
 | 게임 카드 이름·설명·오픈 여부 | `src/games/gameList.js` |

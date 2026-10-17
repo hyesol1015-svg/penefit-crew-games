@@ -7,6 +7,9 @@
  *   description : 코드 아래 짧은 안내 문구
  *   copyLabel   : 복사 버튼 문구
  *   copiedLabel : 복사에 성공했을 때 버튼 문구
+ *   note        : 코드는 자동 적용이 아니라 직접 입력해야 한다는 안내
+ *   shopUrl     : 'Shop on Shopee SG' 버튼이 새 탭으로 여는 제품 주소 (위 SHOP_URL)
+ *   shopLabel   : 구매 버튼 문구
  *   howToLabel  : 사용 방법 안내 창을 여는 버튼 문구
  *   howToTitle  : 사용 방법 안내 창 제목
  *   steps       : 사용 방법 3단계 (VoucherHowTo.jsx 가 보여 줘요)
@@ -17,6 +20,10 @@
  * ※ 문구는 바우처 담당자가 정해 준 내용이에요. 할인율·조건이 바뀌면 여기 문구만 고치면 돼요.
  * ※ code 를 빈 글자('')로 두어도 카드가 숨겨져요.
  */
+/** Shopee SG 제품 구매 링크 — 링크가 바뀌면 여기만 고치면 돼요 */
+export const SHOP_URL =
+  'https://shopee.sg/PENEFIT-Multivitamin-Powder-for-Dogs-Cats-Taurine-28-Nutrients-Picky-Eater-Food-Topper-Tuna-Korea-45g-i.1297704956.48916915679'
+
 export const VOUCHER = {
   enabled: true,
   code: 'PENEGAME',
@@ -24,6 +31,11 @@ export const VOUCHER = {
   description: 'Use this code on Shopee SG.',
   copyLabel: 'Copy Code',
   copiedLabel: 'Copied!',
+  // 코드가 자동으로 적용되지 않는다는 안내 (직접 복사해서 Shopee 결제 화면에 입력)
+  note: 'The code is not applied automatically. Copy it and enter it at checkout on Shopee SG.',
+  // Shopee SG 제품 페이지 (새 탭으로 열려요). 빈 글자('')로 두면 버튼이 숨겨져요.
+  shopUrl: SHOP_URL,
+  shopLabel: 'Shop on Shopee SG',
   howToLabel: 'How to Use',
   howToTitle: 'How to use your voucher',
   steps: [

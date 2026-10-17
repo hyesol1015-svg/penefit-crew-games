@@ -8,6 +8,7 @@ import VoucherHowTo from './VoucherHowTo.jsx'
  *  - 선물 상자 뚜껑이 톡 열리면서 쿠폰 티켓이 나타나요.
  *  - 제목은 '25% OFF Voucher' 처럼 할인 문구를 크게 강조해요. (문구는 voucher.js)
  *  - 'Copy Code' 버튼을 누르면 코드가 클립보드에 복사되고 버튼이 'Copied!'(체크 표시)로 바뀌어요.
+ *  - 'Shop on Shopee SG' 버튼은 제품 페이지(voucher.js 의 shopUrl)를 새 탭으로 열어요.
  *  - 'How to Use' 버튼을 누르면 3단계 사용 방법 안내 창(VoucherHowTo.jsx)이 열려요.
  *  - 복사가 안 되는 환경(오래된 브라우저, 보안 주소가 아닌 곳 등)이면
  *    코드를 자동으로 선택해 두고 직접 복사하는 방법을 알려 줘요.
@@ -26,6 +27,22 @@ function CheckIcon() {
     <svg className="voucher__check" viewBox="0 0 20 20" aria-hidden="true">
       <circle cx="10" cy="10" r="10" fill="#fff" />
       <path d="M5.5 10.3 8.6 13.3 14.6 7" fill="none" stroke="#5fae84" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+/** 새 탭으로 열린다는 작은 표시 */
+function ExternalIcon() {
+  return (
+    <svg className="voucher__ext" viewBox="0 0 20 20" aria-hidden="true">
+      <path
+        d="M11 4h5v5M16 4l-7 7M14 12v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -140,6 +157,7 @@ function VoucherCard({ voucher = VOUCHER }) {
         </label>
 
         <p className="voucher__desc">{voucher.description}</p>
+        {voucher.note && <p className="voucher__note">{voucher.note}</p>}
 
         <div className="voucher__buttons">
           <button
@@ -156,6 +174,18 @@ function VoucherCard({ voucher = VOUCHER }) {
               voucher.copyLabel
             )}
           </button>
+          {voucher.shopUrl && (
+            <a
+              className="btn voucher__shop"
+              href={voucher.shopUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${voucher.shopLabel} (opens in a new tab)`}
+            >
+              {voucher.shopLabel}
+              <ExternalIcon />
+            </a>
+          )}
           {voucher.steps?.length > 0 && (
             <button
               ref={howToBtnRef}

@@ -76,6 +76,24 @@ npm run lint      # 코드 검사
 - 이미지 경로는 지금처럼 `'/assets/...'` 로 적으면 돼요. `src/gameAssets.js` 의 `assetUrl()` 이
   배포 경로를 자동으로 붙여 줘요. (저장소 이름을 바꾸면 `vite.config.js` 의 `base` 도 같이 바꿔 주세요)
 
+### Meta Pixel (광고 성과 측정)
+
+- 픽셀 ID `1955745922051717` (PENEFIT Game Pixel). 기본 코드(PageView)는 `index.html` 의 `<head>` 에 있어요.
+- 게임 안 맞춤 이벤트는 `src/pixel.js` 에서 보내요. (모두 `{ game: 'bapkku' | 'cookie' | 'cafe' | 'jelly' }` 포함)
+
+| 이벤트 | 언제 |
+| --- | --- |
+| `GameStart` | 메인 화면에서 게임 카드를 눌렀을 때, 또는 다시하기(Start Over·위쪽 다시하기 버튼) |
+| `GameComplete` | 완성 화면에 바우처 카드가 나타났을 때 (한 판에 한 번) |
+| `CopyCode` | 바우처 카드의 **Copy Code** 를 눌렀을 때 |
+| `ShopNowClick` | 주소에 `shopee` 가 들어간 링크를 눌렀을 때 (`href` 도 함께) |
+
+- 광고 차단기 등으로 픽셀이 막혀도 게임은 그대로 동작해요.
+- 개발 모드(React StrictMode)에서도 `GameComplete` 가 두 번 가지 않도록 막아 두었어요.
+- 배포 후 확인: Events Manager → PENEFIT Game Pixel → **Test events** 에서 게임을 한 판 해 보세요.
+- 메인 화면 보상 배너("Finish a recipe to unlock 25% OFF")는 `MainScreen.jsx` 에 있고, 할인 문구는 `voucher.js` 의 `title` 에서 가져와요.
+  바우처 코드는 배너에 보여 주지 않아요. (`enabled: false` 면 배너도 사라져요)
+
 ---
 
 ## 2. 폴더 구조

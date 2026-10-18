@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { VOUCHER, copyToClipboard, hasVoucher } from './voucher.js'
 import VoucherHowTo from './VoucherHowTo.jsx'
+// Meta Pixel 맞춤 이벤트 (광고 성과 측정용)
+import { getCurrentGame, trackCustom } from '../../pixel.js'
 
 /**
  * VoucherCard — 완성 화면에 나타나는 선물 바우처 카드
@@ -78,6 +80,15 @@ function VoucherCard({ voucher = VOUCHER }) {
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
 
+  // 완성 화면이 나타나면 '게임 완료'를 한 번 기록해요
+  // (개발 모드의 React StrictMode 는 효과를 두 번 실행하므로, ref 로 한 번만 보내게 막아요)
+  const completeSentRef = useRef(false)
+  useEffect(() => {
+    if (completeSentRef.current) return
+    completeSentRef.current = true
+    trackCustom('GameComplete', { game: getCurrentGame() })
+  }, [])
+
   if (!hasVoucher(voucher)) return null
   const code = voucher.code.trim()
 
@@ -93,6 +104,8 @@ function VoucherCard({ voucher = VOUCHER }) {
   const handleCopy = async (event) => {
     const button = event.currentTarget
     clearTimeout(timerRef.current)
+    // 코드 복사 버튼을 누른 것도 기록해요
+    trackCustom('CopyCode', { game: getCurrentGame() })
     const ok = await copyToClipboard(code)
     if (ok) {
       setStatus('copied')

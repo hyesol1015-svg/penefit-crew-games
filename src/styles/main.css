@@ -652,3 +652,112 @@
     font-size: 0.72rem;
   }
 }
+
+/* ----------------------------------------------------------
+ * 보상 배너 — 첫 화면에서 '게임을 끝내면 25% OFF' 미리 알림
+ * (코드는 보여 주지 않아요. 게임을 끝내야 완성 화면에서 공개)
+ * ---------------------------------------------------------- */
+.reward-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fff1d6, var(--peach));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.7),
+    0 4px 0 var(--peach-deep);
+  animation: reward-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s backwards;
+}
+
+.reward-banner__gift {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 1.3rem;
+  animation: reward-wiggle 2.4s ease-in-out 1s infinite;
+}
+
+.reward-banner__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.reward-banner__main {
+  font-family: var(--font-head);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.reward-banner__main b {
+  color: #e2603f;
+  font-weight: 700;
+  white-space: nowrap; /* '25% OFF' 가 두 줄로 갈라지지 않게 */
+}
+
+.reward-banner__sub {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+@keyframes reward-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+}
+
+@keyframes reward-wiggle {
+  0%,
+  80%,
+  100% {
+    transform: rotate(0);
+  }
+  85% {
+    transform: rotate(-12deg) scale(1.08);
+  }
+  90% {
+    transform: rotate(10deg) scale(1.08);
+  }
+  95% {
+    transform: rotate(-6deg);
+  }
+}
+
+/* 작은 휴대폰: 글자를 조금 줄여서 배너가 낮고 깔끔하게 */
+@media (max-width: 420px) {
+  .reward-banner {
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 7px 10px;
+    border-radius: 16px;
+  }
+  .reward-banner__gift {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+  }
+  .reward-banner__main {
+    font-size: 0.86rem;
+  }
+  .reward-banner__sub {
+    font-size: 0.68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reward-banner,
+  .reward-banner__gift {
+    animation: none;
+  }
+}

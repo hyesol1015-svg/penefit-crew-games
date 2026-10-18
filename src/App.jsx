@@ -2,6 +2,8 @@ import { useState } from 'react'
 import MainScreen from './components/MainScreen.jsx'
 import { GAME_SCREENS } from './games/index.js'
 import { CREW, DEFAULT_CREW_ID } from './characters.js'
+// Meta Pixel 맞춤 이벤트 (광고 성과 측정용)
+import { getCurrentGame, setCurrentGame, trackCustom } from './pixel.js'
 
 /**
  * App — 화면 전환 + '함께 요리할 크루' 선택을 담당하는 최상위 컴포넌트
@@ -34,8 +36,22 @@ function App() {
   const [runId, setRunId] = useState(0)
   const [crewId, setCrewId] = useState(loadCrewId)
 
-  const goHome = () => setScreen('home')
-  const restart = () => setRunId((n) => n + 1)
+  const goHome = () => {
+    setCurrentGame('') // 메인 화면으로 돌아오면 '지금 게임' 기록을 비워요
+    setScreen('home')
+  }
+  const restart = () => {
+    setRunId((n) => n + 1)
+    // 처음부터 다시하기도 새 게임 시작으로 기록해요
+    trackCustom('GameStart', { game: getCurrentGame() })
+  }
+
+  // 메인 화면에서 게임 카드를 눌렀을 때: 화면 전환 + 게임 시작 기록
+  const playGame = (gameId) => {
+    setCurrentGame(gameId)
+    trackCustom('GameStart', { game: gameId })
+    setScreen(gameId)
+  }
 
   const selectCrew = (id) => {
     setCrewId(id)
@@ -54,7 +70,7 @@ function App() {
         {Game ? (
           <Game key={`${screen}-${runId}`} onHome={goHome} onRestart={restart} crewId={crewId} />
         ) : (
-          <MainScreen onPlay={(gameId) => setScreen(gameId)} crewId={crewId} onSelectCrew={selectCrew} />
+          <MainScreen onPlay={playGame} crewId={crewId} onSelectCrew={selectCrew} />
         )}
       </main>
     </div>
